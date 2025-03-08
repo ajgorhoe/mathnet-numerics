@@ -7,6 +7,8 @@ Information about branches used by IGLib:
 00IGLib/00_IGLibInfoAdditions
   Created from initial commit, containt 00IGLib/ directory that is added
   for branches and tags used by IGLib.
+  84e9432bc1e8a6b2ae7acd32cda4175abeaeaed1 from 2. 3. 2025 at 16:31
+  is merged from the master branch.
 
 00IGLib/25_02_IGLib_2_0_0_DependenciesAndProjectsHarmonization
   The new version of .NET Numerics to be used with IGLib.
