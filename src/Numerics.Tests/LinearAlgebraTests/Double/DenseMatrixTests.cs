@@ -31,9 +31,11 @@ using System;
 using System.Collections.Generic;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
+using MathNet.Numerics.LinearAlgebra.Double.Solvers;
+using MathNet.Numerics.LinearAlgebra.Solvers;
 using NUnit.Framework;
 
-namespace MathNet.Numerics.UnitTests.LinearAlgebraTests.Double
+namespace MathNet.Numerics.Tests.LinearAlgebraTests.Double
 {
     /// <summary>
     /// Dense matrix tests.
@@ -93,6 +95,43 @@ namespace MathNet.Numerics.UnitTests.LinearAlgebraTests.Double
             var matrix = Matrix<double>.Build.Dense(3, 3, data);
             matrix[0, 0] = 10.0;
             Assert.AreEqual(10.0, data[0]);
+        }
+
+        [Test]
+        public void DescriptionForMatrixWithRowsButNoColumns()
+        {
+            var matrix = GetMatrixWithRowsButNoColumns();
+            Assert.AreEqual($"DenseMatrix 3x0-Double{Environment.NewLine}[empty]{Environment.NewLine}[empty]{Environment.NewLine}[empty]{Environment.NewLine}", matrix.ToString());
+        }
+
+        [Test]
+        public void DescriptionForMatrixWithColumnsButNoRows()
+        {
+            var matrix = GetMatrixWithColumnsButNoRows();
+            Assert.AreEqual($"DenseMatrix 0x3-Double{Environment.NewLine}[empty]  [empty]  [empty]", matrix.ToString());
+        }
+
+        [Test]
+        public void DescriptionForMatrixWithNoRowsAndNoColumns()
+        {
+            var matrix = TestMatrices["Wide2x3"];
+            matrix = matrix.RemoveRow(matrix.RowCount - 1);
+            matrix = matrix.RemoveRow(matrix.RowCount - 1);
+
+            matrix = matrix.RemoveColumn(matrix.ColumnCount - 1);
+            matrix = matrix.RemoveColumn(matrix.ColumnCount - 1);
+            matrix = matrix.RemoveColumn(matrix.ColumnCount - 1);
+
+            Assert.AreEqual($"DenseMatrix 0x0-Double{Environment.NewLine}[empty]", matrix.ToString());
+        }
+
+        [Test]
+        public void MatrixMultiplicationWhenMatricesHaveNoRowsAndColumns()
+        {
+            var a = GetMatrixWithRowsButNoColumns();
+            var b = GetMatrixWithColumnsButNoRows();
+            var result = a * b;
+            Assert.AreEqual(new DenseMatrix(3), result);
         }
 
         /// <summary>
@@ -208,6 +247,36 @@ namespace MathNet.Numerics.UnitTests.LinearAlgebraTests.Double
                     GC.KeepAlive(m.ToMatrixString(i, j));
                 }
             }
+        }
+
+        [Test]
+        public void ResidualStopCriterionDoesNotCrashForZeroVector()
+        {
+            var A = new DenseMatrix(2, 2, new double[] { 1, 2, 3, 4 });
+            var b = new DenseVector(2);
+            var x = new DenseVector(2);
+
+            var iterator = new Iterator<double>(new ResidualStopCriterion<double>(1e-5));
+            var solver = new BiCgStab();
+
+            solver.Solve(A, b, x, iterator, null);
+            Assert.AreEqual(new DenseVector(2), x);
+        }
+
+        private Matrix<double> GetMatrixWithRowsButNoColumns()
+        {
+            var matrix = TestMatrices["Tall3x2"];
+            matrix = matrix.RemoveColumn(matrix.ColumnCount - 1);
+            matrix = matrix.RemoveColumn(matrix.ColumnCount - 1);
+            return matrix;
+        }
+
+        private Matrix<double> GetMatrixWithColumnsButNoRows()
+        {
+            var matrix = TestMatrices["Wide2x3"];
+            matrix = matrix.RemoveRow(matrix.RowCount - 1);
+            matrix = matrix.RemoveRow(matrix.RowCount - 1);
+            return matrix;
         }
     }
 }

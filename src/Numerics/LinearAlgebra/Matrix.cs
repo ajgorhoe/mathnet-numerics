@@ -27,13 +27,14 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 // </copyright>
 
+using MathNet.Numerics.LinearAlgebra.Storage;
+using MathNet.Numerics.Threading;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime;
 using System.Runtime.CompilerServices;
-using MathNet.Numerics.LinearAlgebra.Storage;
-using MathNet.Numerics.Threading;
 
 namespace MathNet.Numerics.LinearAlgebra
 {
@@ -42,11 +43,8 @@ namespace MathNet.Numerics.LinearAlgebra
     /// </summary>
     /// <typeparam name="T">Supported data types are <c>double</c>, <c>single</c>, <see cref="Complex"/>, and <see cref="Complex32"/>.</typeparam>
     [Serializable]
-    public abstract partial class Matrix<T> :
-        IFormattable, IEquatable<Matrix<T>>
-#if !NETSTANDARD1_3
-        , ICloneable
-#endif
+    [DebuggerTypeProxy(typeof(MatrixDebuggingView<>))]
+    public abstract partial class Matrix<T> : IFormattable, IEquatable<Matrix<T>>, ICloneable
         where T : struct, IEquatable<T>, IFormattable
     {
         /// <summary>
@@ -92,15 +90,11 @@ namespace MathNet.Numerics.LinearAlgebra
         /// to get and set values without range checking.</remarks>
         public T this[int row, int column]
         {
-#if !NET40
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
             [TargetedPatchingOptOut("Performance critical to inline across NGen image boundaries")]
             get { return Storage[row, column]; }
 
-#if !NET40
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
             [TargetedPatchingOptOut("Performance critical to inline across NGen image boundaries")]
             set { Storage[row, column] = value; }
         }
@@ -117,9 +111,7 @@ namespace MathNet.Numerics.LinearAlgebra
         /// <returns>
         /// The requested element.
         /// </returns>
-#if !NET40
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
         [TargetedPatchingOptOut("Performance critical to inline across NGen image boundaries")]
         public T At(int row, int column)
         {
@@ -138,9 +130,7 @@ namespace MathNet.Numerics.LinearAlgebra
         /// <param name="value">
         /// The value to set the element to.
         /// </param>
-#if !NET40
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
         [TargetedPatchingOptOut("Performance critical to inline across NGen image boundaries")]
         public void At(int row, int column, T value)
         {
@@ -1000,6 +990,20 @@ namespace MathNet.Numerics.LinearAlgebra
         }
 
         /// <summary>
+        /// Creates a new matrix with the desired size and copies this matrix to it.
+        /// Values which no longer exist in the new matrix are ignored, new values are set to zero.
+        /// </summary>
+        /// <param name="rowCount">The number of rows of the new matrix.</param>
+        /// <param name="columnCount">The number of columns of the new matrix.</param>
+        /// <returns>A new matrix with the desired rows and columns.</returns>
+        public Matrix<T> Resize(int rowCount, int columnCount)
+        {
+            var result = Build.SameAs(this, rowCount, columnCount, fullyMutable: true);
+            Storage.CopySubMatrixTo(result.Storage, 0, 0, Math.Min(RowCount, rowCount), 0, 0, Math.Min(ColumnCount, columnCount), ExistingData.AssumeZeros);
+            return result;
+        }
+
+        /// <summary>
         /// Returns the transpose of this matrix.
         /// </summary>
         /// <returns>The transpose of this matrix.</returns>
@@ -1442,7 +1446,7 @@ namespace MathNet.Numerics.LinearAlgebra
         /// The enumerator will include all values, even if they are zero.
         /// The ordering of the values is unspecified (not necessarily column-wise or row-wise).
         /// </remarks>
-        public IEnumerable<T> Enumerate(Zeros zeros = Zeros.Include)
+        public IEnumerable<T> Enumerate(Zeros zeros)
         {
             switch (zeros)
             {
@@ -1461,7 +1465,7 @@ namespace MathNet.Numerics.LinearAlgebra
         /// and the third value being the value of the element at that index.
         /// The enumerator will include all values, even if they are zero.
         /// </remarks>
-        public IEnumerable<Tuple<int, int, T>> EnumerateIndexed()
+        public IEnumerable<(int, int, T)> EnumerateIndexed()
         {
             return Storage.EnumerateIndexed();
         }
@@ -1474,7 +1478,7 @@ namespace MathNet.Numerics.LinearAlgebra
         /// and the third value being the value of the element at that index.
         /// The enumerator will include all values, even if they are zero.
         /// </remarks>
-        public IEnumerable<Tuple<int, int, T>> EnumerateIndexed(Zeros zeros = Zeros.Include)
+        public IEnumerable<(int, int, T)> EnumerateIndexed(Zeros zeros)
         {
             switch (zeros)
             {
@@ -1517,11 +1521,11 @@ namespace MathNet.Numerics.LinearAlgebra
         /// The enumerator returns a Tuple with the first value being the column index
         /// and the second value being the value of the column at that index.
         /// </remarks>
-        public IEnumerable<Tuple<int, Vector<T>>> EnumerateColumnsIndexed()
+        public IEnumerable<(int, Vector<T>)> EnumerateColumnsIndexed()
         {
             for (var i = 0; i < ColumnCount; i++)
             {
-                yield return new Tuple<int, Vector<T>>(i, Column(i));
+                yield return (i, Column(i));
             }
         }
 
@@ -1534,12 +1538,12 @@ namespace MathNet.Numerics.LinearAlgebra
         /// The enumerator returns a Tuple with the first value being the column index
         /// and the second value being the value of the column at that index.
         /// </remarks>
-        public IEnumerable<Tuple<int, Vector<T>>> EnumerateColumnsIndexed(int index, int length)
+        public IEnumerable<(int, Vector<T>)> EnumerateColumnsIndexed(int index, int length)
         {
             var maxIndex = Math.Min(index + length, ColumnCount);
             for (var i = Math.Max(index, 0); i < maxIndex; i++)
             {
-                yield return new Tuple<int, Vector<T>>(i, Column(i));
+                yield return (i, Column(i));
             }
         }
 
@@ -1575,11 +1579,11 @@ namespace MathNet.Numerics.LinearAlgebra
         /// The enumerator returns a Tuple with the first value being the row index
         /// and the second value being the value of the row at that index.
         /// </remarks>
-        public IEnumerable<Tuple<int, Vector<T>>> EnumerateRowsIndexed()
+        public IEnumerable<(int, Vector<T>)> EnumerateRowsIndexed()
         {
             for (var i = 0; i < RowCount; i++)
             {
-                yield return new Tuple<int, Vector<T>>(i, Row(i));
+                yield return (i, Row(i));
             }
         }
 
@@ -1592,12 +1596,12 @@ namespace MathNet.Numerics.LinearAlgebra
         /// The enumerator returns a Tuple with the first value being the row index
         /// and the second value being the value of the row at that index.
         /// </remarks>
-        public IEnumerable<Tuple<int, Vector<T>>> EnumerateRowsIndexed(int index, int length)
+        public IEnumerable<(int, Vector<T>)> EnumerateRowsIndexed(int index, int length)
         {
             var maxIndex = Math.Min(index + length, RowCount);
             for (var i = Math.Max(index, 0); i < maxIndex; i++)
             {
-                yield return new Tuple<int, Vector<T>>(i, Row(i));
+                yield return (i, Row(i));
             }
         }
 
@@ -1724,7 +1728,7 @@ namespace MathNet.Numerics.LinearAlgebra
                     }
                 });
             }
-            Storage.FoldByRowUnchecked(result, f, (x, c) => x, result, zeros);
+            Storage.FoldByRowUnchecked(result, f, (x, _) => x, result, zeros);
             return result;
         }
 
@@ -1745,7 +1749,7 @@ namespace MathNet.Numerics.LinearAlgebra
                     }
                 });
             }
-            Storage.FoldByColumnUnchecked(result, f, (x, c) => x, result, zeros);
+            Storage.FoldByColumnUnchecked(result, f, (x, _) => x, result, zeros);
             return result;
         }
 
@@ -1876,5 +1880,19 @@ namespace MathNet.Numerics.LinearAlgebra
         {
             return Storage.Find2(other.Storage, (x, y) => !predicate(x, y), zeros) == null;
         }
+    }
+
+    internal class MatrixDebuggingView<T>
+        where T : struct, IEquatable<T>, IFormattable
+    {
+        private readonly Matrix<T> _matrix;
+
+        public MatrixDebuggingView(Matrix<T> matrix)
+        {
+            _matrix = matrix;
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public T[,] Items => _matrix.ToArray();
     }
 }

@@ -32,7 +32,7 @@ using MathNet.Numerics.Distributions;
 using MathNet.Numerics.Statistics;
 using NUnit.Framework;
 
-namespace MathNet.Numerics.UnitTests.DistributionTests.Discrete
+namespace MathNet.Numerics.Tests.DistributionTests.Discrete
 {
     /// <summary>
     /// Categorical distribution tests.
@@ -105,9 +105,8 @@ namespace MathNet.Numerics.UnitTests.DistributionTests.Discrete
         public void CategoricalCreateFailsWithNullHistogram()
         {
             Histogram h = null;
-// ReSharper disable ExpressionIsAlwaysNull
+// ReSharper disable once ExpressionIsAlwaysNull
             Assert.That(() => new Categorical(h), Throws.TypeOf<ArgumentNullException>());
-// ReSharper restore ExpressionIsAlwaysNull
         }
 
         /// <summary>

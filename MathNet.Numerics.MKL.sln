@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30114.105
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{5A0892FF-82CE-40FC-BCE1-73810C615F52}"
 	ProjectSection(SolutionItems) = preProject
@@ -20,6 +20,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestData", "src\TestData\Te
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Readme", "Readme", "{77CF160D-3AE0-45A2-8224-6322C28C2685}"
 	ProjectSection(SolutionItems) = preProject
+		LICENSE-MKL.md = LICENSE-MKL.md
+		LICENSE.md = LICENSE.md
 		README.md = README.md
 		RELEASENOTES-MKL.md = RELEASENOTES-MKL.md
 		RELEASENOTES.md = RELEASENOTES.md
@@ -38,9 +40,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{9275D8F1-8
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{97C9717A-68C7-4C86-B30E-E4FC54C43A13}"
 	ProjectSection(SolutionItems) = preProject
-		build\build-framework.fsx = build\build-framework.fsx
 		build.fsx = build.fsx
-		src\Directory.Build.props = src\Directory.Build.props
+		Directory.Build.props = Directory.Build.props
 		build\MathNet.Numerics.MKL.Linux-x64.nuspec = build\MathNet.Numerics.MKL.Linux-x64.nuspec
 		build\MathNet.Numerics.MKL.Linux-x86.nuspec = build\MathNet.Numerics.MKL.Linux-x86.nuspec
 		build\MathNet.Numerics.MKL.Linux.nuspec = build\MathNet.Numerics.MKL.Linux.nuspec
@@ -52,6 +53,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{97C9717A
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmark", "src\Benchmark\Benchmark.csproj", "{F2CA84AE-4B7C-46F5-9889-82BC5F9F0F4E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Providers.MKL", "src\Providers.MKL\Providers.MKL.csproj", "{527B3889-5578-4992-BE69-E40A40C0FB10}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -227,6 +230,38 @@ Global
 		{F2CA84AE-4B7C-46F5-9889-82BC5F9F0F4E}.Release-Signed|Win32.Build.0 = Release|Any CPU
 		{F2CA84AE-4B7C-46F5-9889-82BC5F9F0F4E}.Release-Signed|x64.ActiveCfg = Release|Any CPU
 		{F2CA84AE-4B7C-46F5-9889-82BC5F9F0F4E}.Release-Signed|x64.Build.0 = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Debug|Win32.Build.0 = Debug|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Debug|x64.Build.0 = Debug|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release|Any CPU.Build.0 = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release|Win32.ActiveCfg = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release|Win32.Build.0 = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release|x64.ActiveCfg = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release|x64.Build.0 = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release-MKL|Any CPU.ActiveCfg = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release-MKL|Any CPU.Build.0 = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release-MKL|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release-MKL|Mixed Platforms.Build.0 = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release-MKL|Win32.ActiveCfg = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release-MKL|Win32.Build.0 = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release-MKL|x64.ActiveCfg = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release-MKL|x64.Build.0 = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release-Signed|Any CPU.ActiveCfg = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release-Signed|Any CPU.Build.0 = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release-Signed|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release-Signed|Mixed Platforms.Build.0 = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release-Signed|Win32.ActiveCfg = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release-Signed|Win32.Build.0 = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release-Signed|x64.ActiveCfg = Release|Any CPU
+		{527B3889-5578-4992-BE69-E40A40C0FB10}.Release-Signed|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

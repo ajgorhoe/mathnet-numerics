@@ -28,6 +28,7 @@
 // </copyright>
 
 using System;
+using System.Numerics;
 using System.Runtime;
 using System.Runtime.InteropServices;
 
@@ -318,7 +319,7 @@ namespace MathNet.Numerics
 
             if (count < 0)
             {
-                return Decrement(value, -count);
+                return Increment(value, -count);
             }
 
             // Translate the bit pattern of the double to an integer.
@@ -445,7 +446,7 @@ namespace MathNet.Numerics
         ///     Thrown if <paramref name="maxNumbersBetween"/> is smaller than zero.
         /// </exception>
         /// <returns>Tuple of the bottom and top range ends.</returns>
-        public static Tuple<double, double> RangeOfMatchingFloatingPointNumbers(this double value, long maxNumbersBetween)
+        public static (double, double) RangeOfMatchingFloatingPointNumbers(this double value, long maxNumbersBetween)
         {
             // Make sure ulpDifference is non-negative
             if (maxNumbersBetween < 1)
@@ -457,13 +458,13 @@ namespace MathNet.Numerics
             // return the same infinity for the range.
             if (double.IsInfinity(value))
             {
-                return new Tuple<double, double>(value, value);
+                return (value, value);
             }
 
             // If the value is a NaN then the range is a NaN too.
             if (double.IsNaN(value))
             {
-                return new Tuple<double, double>(double.NaN, double.NaN);
+                return (double.NaN, double.NaN);
             }
 
             // Translate the bit pattern of the double to an integer.
@@ -497,7 +498,7 @@ namespace MathNet.Numerics
                     // However due to the conversion way this means that the actual double value gets more negative :-S
                     : BitConverter.Int64BitsToDouble(intValue + maxNumbersBetween);
 
-                return new Tuple<double, double>(bottomRangeEnd, topRangeEnd);
+                return (bottomRangeEnd, topRangeEnd);
             }
             else
             {
@@ -518,7 +519,7 @@ namespace MathNet.Numerics
                     // the reversal at the negative end
                     : BitConverter.Int64BitsToDouble(long.MinValue + (maxNumbersBetween - intValue));
 
-                return new Tuple<double, double>(bottomRangeEnd, topRangeEnd);
+                return (bottomRangeEnd, topRangeEnd);
             }
         }
 
@@ -564,7 +565,7 @@ namespace MathNet.Numerics
         /// Tuple with the number of ULPS between the <c>value</c> and the <c>value - relativeDifference</c> as first,
         /// and the number of ULPS between the <c>value</c> and the <c>value + relativeDifference</c> as second value.
         /// </returns>
-        public static Tuple<long, long> RangeOfMatchingNumbers(this double value, double relativeDifference)
+        public static (long, long) RangeOfMatchingNumbers(this double value, double relativeDifference)
         {
             // Make sure the relative is non-negative
             if (relativeDifference < 0)
@@ -590,7 +591,7 @@ namespace MathNet.Numerics
             if (value.Equals(0))
             {
                 var v = BitConverter.DoubleToInt64Bits(relativeDifference);
-                return new Tuple<long, long>(v, v);
+                return (v, v);
             }
 
             // Calculate the ulps for the maximum and minimum values
@@ -602,7 +603,7 @@ namespace MathNet.Numerics
             long intValue = AsDirectionalInt64(value);
 
             // Determine the ranges
-            return new Tuple<long, long>(Math.Abs(intValue - min), Math.Abs(max - intValue));
+            return (Math.Abs(intValue - min), Math.Abs(max - intValue));
         }
 
         /// <summary>
@@ -757,6 +758,210 @@ namespace MathNet.Numerics
                 eps /= 2.0d;
 
             return eps;
+        }
+
+        /// <summary>
+        /// Round to a multiple of the provided positive basis.
+        /// </summary>
+        /// <param name="number">Number to be rounded.</param>
+        /// <param name="basis">The basis to whose multiples to round to. Must be positive.</param>
+        public static double RoundToMultiple(this double number, double basis)
+        {
+            return Math.Round(number / basis, MidpointRounding.AwayFromZero) * basis;
+        }
+
+        /// <summary>
+        /// Round to a multiple of the provided positive basis.
+        /// </summary>
+        /// <param name="number">Number to be rounded.</param>
+        /// <param name="basis">The basis to whose multiples to round to. Must be positive.</param>
+        public static float RoundToMultiple(this float number, float basis)
+        {
+            return (float) RoundToMultiple((double) number, basis);
+        }
+
+        /// <summary>
+        /// Round to a multiple of the provided positive basis.
+        /// </summary>
+        /// <param name="number">Number to be rounded.</param>
+        /// <param name="basis">The basis to whose multiples to round to. Must be positive.</param>
+        public static decimal RoundToMultiple(this decimal number, decimal basis)
+        {
+            return Math.Round(number / basis, MidpointRounding.AwayFromZero) * basis;
+        }
+
+        /// <summary>
+        /// Round to a multiple of the provided positive basis.
+        /// </summary>
+        /// <param name="number">Number to be rounded.</param>
+        /// <param name="basis">The basis to whose powers to round to. Must be positive.</param>
+        public static double RoundToPower(this double number, double basis)
+        {
+            return number < 0.0
+                ? -Math.Pow(basis, Math.Round(Math.Log(-number, basis), MidpointRounding.AwayFromZero))
+                : Math.Pow(basis, Math.Round(Math.Log(number, basis), MidpointRounding.AwayFromZero));
+        }
+
+        /// <summary>
+        /// Round to a multiple of the provided positive basis.
+        /// </summary>
+        /// <param name="number">Number to be rounded.</param>
+        /// <param name="basis">The basis to whose powers to round to. Must be positive.</param>
+        public static float RoundToPower(this float number, float basis)
+        {
+            return (float) RoundToPower((double) number, basis);
+        }
+
+        /// <summary>
+        /// Round to the number closest to 10^(-decimals). Negative decimals to round within the integer part.
+        /// </summary>
+        /// <param name="number">Number to be rounded</param>
+        /// <param name="digits">If positive the number of decimals to round to. If negative the number of digits within the integer part to round, e.g. -3 will wound to the closes 1000.</param>
+        /// <example>To round 123456789 to hundreds Round(123456789, -2) = 123456800 </example>
+        /// <returns>Rounded number</returns>
+        public static double Round(this double number, int digits)
+        {
+            return digits >= 0
+                ? Math.Round(number, digits, MidpointRounding.AwayFromZero)
+                : RoundToMultiple(number, Math.Pow(10.0, -digits));
+        }
+
+        /// <summary>
+        /// Round to the number closest to 10^(-decimals). Negative decimals to round within the integer part.
+        /// </summary>
+        /// <param name="number">Number to be rounded</param>
+        /// <param name="digits">If positive the number of decimals to round to. If negative the number of digits within the integer part to round, e.g. -3 will wound to the closes 1000.</param>
+        /// <example>To round 123456789 to hundreds Round(123456789, -2) = 123456800 </example>
+        /// <returns>Rounded number</returns>
+        public static float Round(this float number, int digits)
+        {
+            return (float) Round((double) number, digits);
+        }
+
+        /// <summary>
+		/// Round to the number closest to 10^(-decimals). Negative decimals to round within the integer part.
+		/// </summary>
+		/// <param name="number">Number to be rounded</param>
+        /// <param name="digits">If positive the number of decimals to round to. If negative the number of digits within the integer part to round, e.g. -3 will wound to the closes 1000.</param>
+		/// <example>To round 123456789 to hundreds Round(123456789, -2) = 123456800 </example>
+		/// <returns>Rounded number</returns>
+		public static decimal Round(this decimal number, int digits)
+        {
+            return digits >= 0
+                ? Math.Round(number, digits, MidpointRounding.AwayFromZero)
+                : RoundToMultiple(number, (decimal) Math.Pow(10.0, -digits));
+        }
+
+		/// <summary>
+		/// Round to the number closest to 10^(-decimals). Negative decimals to round within the integer part.
+		/// </summary>
+		/// <param name="number">Number to be rounded</param>
+        /// <param name="digits">If positive the number of decimals to round to. If negative the number of digits within the integer part to round, e.g. -3 will wound to the closes 1000.</param>
+		/// <example>To round 123456789 to hundreds Round(123456789, -2) = 123456800 </example>
+		/// <returns>Rounded number</returns>
+		public static int Round(this int number, int digits)
+        {
+            return digits >= 0
+                ? number
+                : (int) Round((decimal) number, digits);
+        }
+
+        /// <summary>
+        /// Round to the number closest to 10^(-decimals). Negative decimals to round within the integer part.
+        /// </summary>
+        /// <param name="number">Number to be rounded</param>
+        /// <param name="digits">If positive the number of decimals to round to. If negative the number of digits within the integer part to round, e.g. -3 will wound to the closes 1000.</param>
+        /// <example>To round 123456789 to hundreds Round(123456789, -2) = 123456800 </example>
+        /// <returns>Rounded number</returns>
+        [CLSCompliant(false)]
+        public static uint Round(this uint number, int digits)
+        {
+            return digits >= 0
+                ? number
+                : (uint) Round((decimal) number, digits);
+        }
+
+        /// <summary>
+        /// Round to the number closest to 10^(-decimals). Negative decimals to round within the integer part.
+        /// </summary>
+        /// <param name="number">Number to be rounded</param>
+        /// <param name="digits">If positive the number of decimals to round to. If negative the number of digits within the integer part to round, e.g. -3 will wound to the closes 1000.</param>
+        /// <example>To round 123456789 to hundreds Round(123456789, -2) = 123456800 </example>
+        /// <returns>Rounded number</returns>
+        public static long Round(this long number, int digits)
+        {
+            return digits >= 0
+                ? number
+                : (long) Round((decimal) number, digits);
+        }
+
+        /// <summary>
+        /// Round to the number closest to 10^(-decimals). Negative decimals to round within the integer part.
+        /// </summary>
+        /// <param name="number">Number to be rounded</param>
+        /// <param name="digits">If positive the number of decimals to round to. If negative the number of digits within the integer part to round, e.g. -3 will wound to the closes 1000.</param>
+        /// <example>To round 123456789 to hundreds Round(123456789, -2) = 123456800 </example>
+        /// <returns>Rounded number</returns>
+        [CLSCompliant(false)]
+        public static ulong Round(this ulong number, int digits)
+        {
+            return digits >= 0
+                ? number
+                : (ulong) Round((decimal) number, digits);
+        }
+
+        /// <summary>
+        /// Round to the number closest to 10^(-decimals). Negative decimals to round within the integer part.
+        /// </summary>
+        /// <param name="number">Number to be rounded</param>
+        /// <param name="digits">If positive the number of decimals to round to. If negative the number of digits within the integer part to round, e.g. -3 will wound to the closes 1000.</param>
+        /// <example>To round 123456789 to hundreds Round(123456789, -2) = 123456800 </example>
+        /// <returns>Rounded number</returns>
+        public static short Round(this short number, int digits)
+        {
+            return digits >= 0
+                ? number
+                : (short) Round((decimal) number, digits);
+        }
+
+        /// <summary>
+        /// Round to the number closest to 10^(-decimals). Negative decimals to round within the integer part.
+        /// </summary>
+        /// <param name="number">Number to be rounded</param>
+        /// <param name="digits">If positive the number of decimals to round to. If negative the number of digits within the integer part to round, e.g. -3 will wound to the closes 1000.</param>
+        /// <example>To round 123456789 to hundreds Round(123456789, -2) = 123456800 </example>
+        /// <returns>Rounded number</returns>
+        [CLSCompliant(false)]
+        public static ushort Round(this ushort number, int digits)
+        {
+            return digits >= 0
+                ? number
+                : (ushort) Round((decimal) number, digits);
+        }
+
+        /// <summary>
+        /// Round to the number closest to 10^(-decimals). Negative decimals to round within the integer part.
+        /// </summary>
+        /// <param name="number">Number to be rounded</param>
+        /// <param name="digits">If positive the number of decimals to round to. If negative the number of digits within the integer part to round, e.g. -3 will wound to the closes 1000.</param>
+        /// <example>To round 123456789 to hundreds Round(123456789, -2) = 123456800 </example>
+        /// <returns>Rounded number</returns>
+        public static BigInteger Round(this BigInteger number, int digits)
+        {
+            if (digits >= 0)
+            {
+                return number;
+            }
+
+            var onelarger = number / BigInteger.Pow(10, (-digits)-1);
+            var divided = onelarger / 10;
+            var lastDigit = onelarger - divided * 10;
+            if (lastDigit >= 5)
+            {
+                divided += 1;
+            }
+
+            return divided * BigInteger.Pow(10, -digits);
         }
 
         [TargetedPatchingOptOut("Performance critical to inline this type of method across NGen image boundaries")]

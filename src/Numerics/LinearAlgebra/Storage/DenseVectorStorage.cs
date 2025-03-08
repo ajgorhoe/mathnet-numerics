@@ -171,9 +171,24 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
             }
 
             var array = new T[length];
-            foreach (var item in data)
+            foreach (var (index, value) in data)
             {
-                array[item.Item1] = item.Item2;
+                array[index] = value;
+            }
+            return new DenseVectorStorage<T>(array.Length, array);
+        }
+
+        public static DenseVectorStorage<T> OfIndexedEnumerable(int length, IEnumerable<(int, T)> data)
+        {
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
+            var array = new T[length];
+            foreach (var (index, value) in data)
+            {
+                array[index] = value;
             }
             return new DenseVectorStorage<T>(array.Length, array);
         }
@@ -182,11 +197,13 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
 
         internal override void CopyToUnchecked(VectorStorage<T> target, ExistingData existingData)
         {
+            var data = Data;
+
             if (target is DenseVectorStorage<T> denseTarget)
             {
                 if (!ReferenceEquals(this, denseTarget))
                 {
-                    Array.Copy(Data, 0, denseTarget.Data, 0, Data.Length);
+                    Array.Copy(data, 0, denseTarget.Data, 0, data.Length);
                 }
 
                 return;
@@ -197,9 +214,9 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
                 var indices = new List<int>();
                 var values = new List<T>();
 
-                for (int i = 0; i < Data.Length; i++)
+                for (int i = 0; i < data.Length; i++)
                 {
-                    var item = Data[i];
+                    var item = data[i];
                     if (!Zero.Equals(item))
                     {
                         values.Add(item);
@@ -215,9 +232,9 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
 
             // FALL BACK
 
-            for (int i = 0; i < Data.Length; i++)
+            for (int i = 0; i < data.Length; i++)
             {
-                target.At(i, Data[i]);
+                target.At(i, data[i]);
             }
         }
 
@@ -225,11 +242,14 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
 
         internal override void CopyToRowUnchecked(MatrixStorage<T> target, int rowIndex, ExistingData existingData)
         {
+            var data = Data;
+
             if (target is DenseColumnMajorMatrixStorage<T> denseTarget)
             {
-                for (int j = 0; j < Data.Length; j++)
+                var targetData = denseTarget.Data;
+                for (int j = 0; j < data.Length; j++)
                 {
-                    denseTarget.Data[j*target.RowCount + rowIndex] = Data[j];
+                    targetData[j*target.RowCount + rowIndex] = data[j];
                 }
                 return;
             }
@@ -238,7 +258,7 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
 
             for (int j = 0; j < Length; j++)
             {
-                target.At(rowIndex, j, Data[j]);
+                target.At(rowIndex, j, data[j]);
             }
         }
 
@@ -246,6 +266,7 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
 
         internal override void CopyToColumnUnchecked(MatrixStorage<T> target, int columnIndex, ExistingData existingData)
         {
+
             if (target is DenseColumnMajorMatrixStorage<T> denseTarget)
             {
                 Array.Copy(Data, 0, denseTarget.Data, columnIndex*denseTarget.RowCount, Data.Length);
@@ -254,9 +275,10 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
 
             // FALL BACK
 
+            var data = Data;
             for (int i = 0; i < Length; i++)
             {
-                target.At(i, columnIndex, Data[i]);
+                target.At(i, columnIndex, data[i]);
             }
         }
 
@@ -281,11 +303,14 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
         internal override void CopyToSubRowUnchecked(MatrixStorage<T> target, int rowIndex,
             int sourceColumnIndex, int targetColumnIndex, int columnCount, ExistingData existingData)
         {
+            var data = Data;
+
             if (target is DenseColumnMajorMatrixStorage<T> denseTarget)
             {
-                for (int j = 0; j < Data.Length; j++)
+                var targetData = denseTarget.Data;
+                for (int j = 0; j < data.Length; j++)
                 {
-                    denseTarget.Data[(j + targetColumnIndex)*target.RowCount + rowIndex] = Data[j + sourceColumnIndex];
+                    targetData[(j + targetColumnIndex)*target.RowCount + rowIndex] = data[j + sourceColumnIndex];
                 }
                 return;
             }
@@ -294,7 +319,7 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
 
             for (int j = sourceColumnIndex, jj = targetColumnIndex; j < sourceColumnIndex + columnCount; j++, jj++)
             {
-                target.At(rowIndex, jj, Data[j]);
+                target.At(rowIndex, jj, data[j]);
             }
         }
 
@@ -303,6 +328,7 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
         internal override void CopyToSubColumnUnchecked(MatrixStorage<T> target, int columnIndex,
             int sourceRowIndex, int targetRowIndex, int rowCount, ExistingData existingData)
         {
+
             if (target is DenseColumnMajorMatrixStorage<T> denseTarget)
             {
                 Array.Copy(Data, sourceRowIndex, denseTarget.Data, columnIndex*denseTarget.RowCount + targetRowIndex, rowCount);
@@ -311,9 +337,10 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
 
             // FALL BACK
 
+            var data = Data;
             for (int i = sourceRowIndex, ii = targetRowIndex; i < sourceRowIndex + rowCount; i++, ii++)
             {
-                target.At(ii, columnIndex, Data[i]);
+                target.At(ii, columnIndex, data[i]);
             }
         }
 
@@ -338,9 +365,9 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
             return Data;
         }
 
-        public override IEnumerable<Tuple<int, T>> EnumerateIndexed()
+        public override IEnumerable<(int, T)> EnumerateIndexed()
         {
-            return Data.Select((t, i) => new Tuple<int, T>(i, t));
+            return Data.Select((t, i) => (i, t));
         }
 
         public override IEnumerable<T> EnumerateNonZero()
@@ -348,13 +375,14 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
             return Data.Where(x => !Zero.Equals(x));
         }
 
-        public override IEnumerable<Tuple<int, T>> EnumerateNonZeroIndexed()
+        public override IEnumerable<(int, T)> EnumerateNonZeroIndexed()
         {
-            for (var i = 0; i < Data.Length; i++)
+            var data = Data;
+            for (var i = 0; i < data.Length; i++)
             {
-                if (!Zero.Equals(Data[i]))
+                if (!Zero.Equals(data[i]))
                 {
-                    yield return new Tuple<int, T>(i, Data[i]);
+                    yield return (i, data[i]);
                 }
             }
         }
@@ -363,11 +391,12 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
 
         public override Tuple<int, T> Find(Func<T, bool> predicate, Zeros zeros)
         {
-            for (int i = 0; i < Data.Length; i++)
+            var data = Data;
+            for (int i = 0; i < data.Length; i++)
             {
-                if (predicate(Data[i]))
+                if (predicate(data[i]))
                 {
-                    return new Tuple<int, T>(i, Data[i]);
+                    return new Tuple<int, T>(i, data[i]);
                 }
             }
             return null;
@@ -375,14 +404,16 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
 
         internal override Tuple<int, T, TOther> Find2Unchecked<TOther>(VectorStorage<TOther> other, Func<T, TOther, bool> predicate, Zeros zeros)
         {
+            var data = Data;
+
             if (other is DenseVectorStorage<TOther> denseOther)
             {
                 TOther[] otherData = denseOther.Data;
-                for (int i = 0; i < Data.Length; i++)
+                for (int i = 0; i < data.Length; i++)
                 {
-                    if (predicate(Data[i], otherData[i]))
+                    if (predicate(data[i], otherData[i]))
                     {
-                        return new Tuple<int, T, TOther>(i, Data[i], otherData[i]);
+                        return new Tuple<int, T, TOther>(i, data[i], otherData[i]);
 
                     }
                 }
@@ -396,21 +427,21 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
                 int otherValueCount = sparseOther.ValueCount;
                 TOther otherZero = BuilderInstance<TOther>.Matrix.Zero;
                 int k = 0;
-                for (int i = 0; i < Data.Length; i++)
+                for (int i = 0; i < data.Length; i++)
                 {
                     if (k < otherValueCount && otherIndices[k] == i)
                     {
-                        if (predicate(Data[i], otherValues[k]))
+                        if (predicate(data[i], otherValues[k]))
                         {
-                            return new Tuple<int, T, TOther>(i, Data[i], otherValues[k]);
+                            return new Tuple<int, T, TOther>(i, data[i], otherValues[k]);
                         }
                         k++;
                     }
                     else
                     {
-                        if (predicate(Data[i], otherZero))
+                        if (predicate(data[i], otherZero))
                         {
-                            return new Tuple<int, T, TOther>(i, Data[i], otherZero);
+                            return new Tuple<int, T, TOther>(i, data[i], otherZero);
                         }
                     }
                 }
@@ -428,9 +459,10 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
         {
             CommonParallel.For(0, Data.Length, 4096, (a, b) =>
             {
+                var data = Data;
                 for (int i = a; i < b; i++)
                 {
-                    Data[i] = f(Data[i]);
+                    data[i] = f(data[i]);
                 }
             });
         }
@@ -439,22 +471,25 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
         {
             CommonParallel.For(0, Data.Length, 4096, (a, b) =>
             {
+                var data = Data;
                 for (int i = a; i < b; i++)
                 {
-                    Data[i] = f(i, Data[i]);
+                    data[i] = f(i, data[i]);
                 }
             });
         }
 
         internal override void MapToUnchecked<TU>(VectorStorage<TU> target, Func<T, TU> f, Zeros zeros, ExistingData existingData)
         {
+            var data = Data;
             if (target is DenseVectorStorage<TU> denseTarget)
             {
-                CommonParallel.For(0, Data.Length, 4096, (a, b) =>
+                var targetData = denseTarget.Data;
+                CommonParallel.For(0, data.Length, 4096, (a, b) =>
                 {
                     for (int i = a; i < b; i++)
                     {
-                        denseTarget.Data[i] = f(Data[i]);
+                        targetData[i] = f(data[i]);
                     }
                 });
                 return;
@@ -464,19 +499,21 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
 
             for (int i = 0; i < Length; i++)
             {
-                target.At(i, f(Data[i]));
+                target.At(i, f(data[i]));
             }
         }
 
         internal override void MapIndexedToUnchecked<TU>(VectorStorage<TU> target, Func<int, T, TU> f, Zeros zeros, ExistingData existingData)
         {
+            var data = Data;
             if (target is DenseVectorStorage<TU> denseTarget)
             {
-                CommonParallel.For(0, Data.Length, 4096, (a, b) =>
+                var targetData = denseTarget.Data;
+                CommonParallel.For(0, data.Length, 4096, (a, b) =>
                 {
                     for (int i = a; i < b; i++)
                     {
-                        denseTarget.Data[i] = f(i, Data[i]);
+                        targetData[i] = f(i, data[i]);
                     }
                 });
                 return;
@@ -486,7 +523,7 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
 
             for (int i = 0; i < Length; i++)
             {
-                target.At(i, f(i, Data[i]));
+                target.At(i, f(i, data[i]));
             }
         }
 
@@ -502,14 +539,17 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
                 return;
             }
 
+            var data = Data;
             var denseTarget = target as DenseVectorStorage<T>;
             if (denseTarget != null && other is DenseVectorStorage<T> denseOther)
             {
+                var targetData = denseTarget.Data;
+                var otherData = denseOther.Data;
                 CommonParallel.For(0, Data.Length, 4096, (a, b) =>
                 {
                     for (int i = a; i < b; i++)
                     {
-                        denseTarget.Data[i] = f(Data[i], denseOther.Data[i]);
+                        targetData[i] = f(data[i], otherData[i]);
                     }
                 });
 
@@ -524,16 +564,16 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
                 int otherValueCount = sparseOther.ValueCount;
 
                 int k = 0;
-                for (int i = 0; i < Data.Length; i++)
+                for (int i = 0; i < data.Length; i++)
                 {
                     if (k < otherValueCount && otherIndices[k] == i)
                     {
-                        targetData[i] = f(Data[i], otherValues[k]);
+                        targetData[i] = f(data[i], otherValues[k]);
                         k++;
                     }
                     else
                     {
-                        targetData[i] = f(Data[i], Zero);
+                        targetData[i] = f(data[i], Zero);
                     }
                 }
 
@@ -547,12 +587,13 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
 
         internal override TState Fold2Unchecked<TOther, TState>(VectorStorage<TOther> other, Func<TState, T, TOther, TState> f, TState state, Zeros zeros)
         {
+            var data = Data;
             if (other is DenseVectorStorage<TOther> denseOther)
             {
                 var otherData = denseOther.Data;
-                for (int i = 0; i < Data.Length; i++)
+                for (int i = 0; i < data.Length; i++)
                 {
-                    state = f(state, Data[i], otherData[i]);
+                    state = f(state, data[i], otherData[i]);
                 }
 
                 return state;
@@ -566,16 +607,16 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
                 TOther otherZero = BuilderInstance<TOther>.Vector.Zero;
 
                 int k = 0;
-                for (int i = 0; i < Data.Length; i++)
+                for (int i = 0; i < data.Length; i++)
                 {
                     if (k < otherValueCount && otherIndices[k] == i)
                     {
-                        state = f(state, Data[i], otherValues[k]);
+                        state = f(state, data[i], otherValues[k]);
                         k++;
                     }
                     else
                     {
-                        state = f(state, Data[i], otherZero);
+                        state = f(state, data[i], otherZero);
                     }
                 }
 

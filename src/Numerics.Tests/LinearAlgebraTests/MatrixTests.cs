@@ -29,10 +29,11 @@
 
 using System;
 using MathNet.Numerics.LinearAlgebra;
+using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Numerics.LinearAlgebra.Storage;
 using NUnit.Framework;
 
-namespace MathNet.Numerics.UnitTests.LinearAlgebraTests
+namespace MathNet.Numerics.Tests.LinearAlgebraTests
 {
     [TestFixture, Category("LA")]
     public class MatrixTests
@@ -72,6 +73,48 @@ namespace MathNet.Numerics.UnitTests.LinearAlgebraTests
         public void SparseCompressedRowMatrixStorageBuilderMethods_ZeroLength_DoNotThrowException()
         {
             Assert.DoesNotThrow(() => new SparseCompressedRowMatrixStorage<double>(0, 0));
+        }
+
+        [Test]
+        public void SparseCompressedRowMatrixStorage_CoordinateFormatDuplicateRemovalCheck()
+        {
+            const double tol = 1e-6;
+            var matDuplicates = MatrixHelpers.ReadTestDataSparseMatrixDoubleCoordinateFormat("coo_torsion_duplicates.csv");
+            var matNoDuplicates = MatrixHelpers.ReadTestDataSparseMatrixDoubleCoordinateFormat("coo_torsion_no_duplicates.csv");
+
+            var rowCount = matDuplicates.RowCount;
+            var columnCount = matDuplicates.ColumnCount;
+
+            Assert.AreEqual(matNoDuplicates.RowCount, rowCount);
+            Assert.AreEqual(matNoDuplicates.ColumnCount, columnCount);
+
+            for (var r = 0; r < rowCount; r++)
+            for (var c = 0; c < columnCount; c++)
+            {
+                var actual = matDuplicates[r, c];
+                var expected = matNoDuplicates[r, c];
+                Assert.True(Math.Abs(actual - expected) < tol, $"Expected {expected:E6} at ({r}, {c}), but got {actual:E6}");
+            }
+        }
+
+        [Test]
+        public void PointwiseMultiplication_SparseReturnsSameResultAsDenseTest()
+        {
+            var x = SparseMatrix.OfDiagonalArray(new double[] { 1, 2, 3, 4 });
+            var y = DenseMatrix.OfDiagonalArray(new double[] { 5, -6, 7, -8 });
+            x.PointwiseMultiply(y, x);
+            var result = SparseMatrix.OfDiagonalArray(new double[] { 5, -12, 21, -32 });
+            Assert.AreEqual(result, x);
+        }
+
+        [Test]
+        public void PointwiseDivision_SparseReturnsSameResultAsDenseTest()
+        {
+            var x = SparseMatrix.OfDiagonalArray(new double[] { 30, 20, 10 });
+            var y = DenseMatrix.OfDiagonalArray(new double[] { 3, 4, 5 });
+            x.PointwiseDivide(y, x);
+            var result = SparseMatrix.OfDiagonalArray(new double[] { 10, 5, 2 });
+            Assert.AreEqual(result, x);
         }
     }
 }

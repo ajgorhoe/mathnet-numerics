@@ -3,9 +3,8 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Environments;
 using BenchmarkDotNet.Jobs;
 using MathNet.Numerics;
-using MathNet.Numerics.Providers.Common.Mkl;
 using MathNet.Numerics.Providers.LinearAlgebra;
-
+using MathNet.Numerics.Providers.MKL;
 using Complex = System.Numerics.Complex;
 
 namespace Benchmark.LinearAlgebra
@@ -19,8 +18,8 @@ namespace Benchmark.LinearAlgebra
             {
                 AddJob(Job.Default.WithRuntime(ClrRuntime.Net461).WithPlatform(Platform.X64).WithJit(Jit.RyuJit));
                 AddJob(Job.Default.WithRuntime(ClrRuntime.Net461).WithPlatform(Platform.X86).WithJit(Jit.LegacyJit));
-#if !NET461
-                AddJob(Job.Default.WithRuntime(CoreRuntime.Core31).WithPlatform(Platform.X64).WithJit(Jit.RyuJit));
+#if NET5_0_OR_GREATER
+                AddJob(Job.Default.WithRuntime(CoreRuntime.Core50).WithPlatform(Platform.X64).WithJit(Jit.RyuJit));
 #endif
             }
         }
@@ -28,14 +27,13 @@ namespace Benchmark.LinearAlgebra
         public enum ProviderId
         {
             Managed,
-            ManagedReference,
             NativeMKL,
         }
 
         [Params(4, 32, 128, 4096, 16384, 524288)]
         public int N { get; set; }
 
-        [Params(ProviderId.Managed, ProviderId.ManagedReference)] //, ProviderId.NativeMKL)]
+        [Params(ProviderId.Managed)] //, ProviderId.NativeMKL)]
         public ProviderId Provider { get; set; }
 
         double[] _a;
@@ -53,11 +51,8 @@ namespace Benchmark.LinearAlgebra
                 case ProviderId.Managed:
                     Control.UseManaged();
                     break;
-                case ProviderId.ManagedReference:
-                    Control.UseManagedReference();
-                    break;
                 case ProviderId.NativeMKL:
-                    Control.UseNativeMKL(MklConsistency.Auto, MklPrecision.Double, MklAccuracy.High);
+                    MklControl.UseNativeMKL(MklConsistency.Auto, MklPrecision.Double, MklAccuracy.High);
                     break;
             }
 

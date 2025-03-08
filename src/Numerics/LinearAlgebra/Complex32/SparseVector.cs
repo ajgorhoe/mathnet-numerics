@@ -69,7 +69,6 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
         /// <summary>
         /// Create a new sparse vector with the given length.
         /// All cells of the vector will be initialized to zero.
-        /// Zero-length vectors are not supported.
         /// </summary>
         /// <exception cref="ArgumentException">If length is less than one.</exception>
         public SparseVector(int length)
@@ -104,6 +103,17 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
         /// A new memory block will be allocated for storing the vector.
         /// </summary>
         public static SparseVector OfIndexedEnumerable(int length, IEnumerable<Tuple<int, Complex32>> enumerable)
+        {
+            return new SparseVector(SparseVectorStorage<Complex32>.OfIndexedEnumerable(length, enumerable));
+        }
+
+        /// <summary>
+        /// Create a new sparse vector as a copy of the given indexed enumerable.
+        /// Keys must be provided at most once, zero is assumed if a key is omitted.
+        /// This new vector will be independent from the enumerable.
+        /// A new memory block will be allocated for storing the vector.
+        /// </summary>
+        public static SparseVector OfIndexedEnumerable(int length, IEnumerable<(int, Complex32)> enumerable)
         {
             return new SparseVector(SparseVectorStorage<Complex32>.OfIndexedEnumerable(length, enumerable));
         }
@@ -194,26 +204,30 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
             if (other is SparseVector otherSparse && result is SparseVector resultSparse)
             {
                 // TODO (ruegg, 2011-10-11): Options to optimize?
+
                 var otherStorage = otherSparse._storage;
+                var otherStorageIndices = otherStorage.Indices;
+                var otherStorageValues = otherStorage.Values;
+
                 if (ReferenceEquals(this, resultSparse))
                 {
                     int i = 0, j = 0;
                     while (j < otherStorage.ValueCount)
                     {
-                        if (i >= _storage.ValueCount || _storage.Indices[i] > otherStorage.Indices[j])
+                        if (i >= _storage.ValueCount || _storage.Indices[i] > otherStorageIndices[j])
                         {
-                            var otherValue = otherStorage.Values[j];
+                            var otherValue = otherStorageValues[j];
                             if (!Complex32.Zero.Equals(otherValue))
                             {
-                                _storage.InsertAtIndexUnchecked(i++, otherStorage.Indices[j], otherValue);
+                                _storage.InsertAtIndexUnchecked(i++, otherStorageIndices[j], otherValue);
                             }
 
                             j++;
                         }
-                        else if (_storage.Indices[i] == otherStorage.Indices[j])
+                        else if (_storage.Indices[i] == otherStorageIndices[j])
                         {
                             // TODO: result can be zero, remove?
-                            _storage.Values[i++] += otherStorage.Values[j++];
+                            _storage.Values[i++] += otherStorageValues[j++];
                         }
                         else
                         {
@@ -227,7 +241,7 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
                     int i = 0, j = 0, last = -1;
                     while (i < _storage.ValueCount || j < otherStorage.ValueCount)
                     {
-                        if (j >= otherStorage.ValueCount || i < _storage.ValueCount && _storage.Indices[i] <= otherStorage.Indices[j])
+                        if (j >= otherStorage.ValueCount || i < _storage.ValueCount && _storage.Indices[i] <= otherStorageIndices[j])
                         {
                             var next = _storage.Indices[i];
                             if (next != last)
@@ -240,11 +254,11 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
                         }
                         else
                         {
-                            var next = otherStorage.Indices[j];
+                            var next = otherStorageIndices[j];
                             if (next != last)
                             {
                                 last = next;
-                                result.At(next, At(next) + otherStorage.Values[j]);
+                                result.At(next, At(next) + otherStorageValues[j]);
                             }
 
                             j++;
@@ -292,26 +306,30 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
             if (other is SparseVector otherSparse && result is SparseVector resultSparse)
             {
                 // TODO (ruegg, 2011-10-11): Options to optimize?
+
                 var otherStorage = otherSparse._storage;
+                var otherStorageIndices = otherStorage.Indices;
+                var otherStorageValues = otherStorage.Values;
+
                 if (ReferenceEquals(this, resultSparse))
                 {
                     int i = 0, j = 0;
                     while (j < otherStorage.ValueCount)
                     {
-                        if (i >= _storage.ValueCount || _storage.Indices[i] > otherStorage.Indices[j])
+                        if (i >= _storage.ValueCount || _storage.Indices[i] > otherStorageIndices[j])
                         {
-                            var otherValue = otherStorage.Values[j];
+                            var otherValue = otherStorageValues[j];
                             if (!Complex32.Zero.Equals(otherValue))
                             {
-                                _storage.InsertAtIndexUnchecked(i++, otherStorage.Indices[j], -otherValue);
+                                _storage.InsertAtIndexUnchecked(i++, otherStorageIndices[j], -otherValue);
                             }
 
                             j++;
                         }
-                        else if (_storage.Indices[i] == otherStorage.Indices[j])
+                        else if (_storage.Indices[i] == otherStorageIndices[j])
                         {
                             // TODO: result can be zero, remove?
-                            _storage.Values[i++] -= otherStorage.Values[j++];
+                            _storage.Values[i++] -= otherStorageValues[j++];
                         }
                         else
                         {
@@ -325,7 +343,7 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
                     int i = 0, j = 0, last = -1;
                     while (i < _storage.ValueCount || j < otherStorage.ValueCount)
                     {
-                        if (j >= otherStorage.ValueCount || i < _storage.ValueCount && _storage.Indices[i] <= otherStorage.Indices[j])
+                        if (j >= otherStorage.ValueCount || i < _storage.ValueCount && _storage.Indices[i] <= otherStorageIndices[j])
                         {
                             var next = _storage.Indices[i];
                             if (next != last)
@@ -338,11 +356,11 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
                         }
                         else
                         {
-                            var next = otherStorage.Indices[j];
+                            var next = otherStorageIndices[j];
                             if (next != last)
                             {
                                 last = next;
-                                result.At(next, At(next) - otherStorage.Values[j]);
+                                result.At(next, At(next) - otherStorageValues[j]);
                             }
 
                             j++;
@@ -377,10 +395,13 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
             }
             else
             {
+                var storageIndices = _storage.Indices;
+                var storageValues = _storage.Values;
+
                 result.Clear();
                 for (var index = 0; index < _storage.ValueCount; index++)
                 {
-                    result.At(_storage.Indices[index], -_storage.Values[index]);
+                    result.At(storageIndices[index], -storageValues[index]);
                 }
             }
         }
@@ -439,10 +460,13 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
             }
             else
             {
+                var storageIndices = _storage.Indices;
+                var storageValues = _storage.Values;
+
                 result.Clear();
                 for (var index = 0; index < _storage.ValueCount; index++)
                 {
-                    result.At(_storage.Indices[index], scalar * _storage.Values[index]);
+                    result.At(storageIndices[index], scalar * storageValues[index]);
                 }
             }
         }
@@ -454,19 +478,22 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
         /// <returns>The sum of a[i]*b[i] for all i.</returns>
         protected override Complex32 DoDotProduct(Vector<Complex32> other)
         {
+            var storageIndices = _storage.Indices;
+            var storageValues = _storage.Values;
+
             var result = Complex32.Zero;
             if (ReferenceEquals(this, other))
             {
                 for (var i = 0; i < _storage.ValueCount; i++)
                 {
-                    result += _storage.Values[i] * _storage.Values[i];
+                    result += storageValues[i] * storageValues[i];
                 }
             }
             else
             {
                 for (var i = 0; i < _storage.ValueCount; i++)
                 {
-                    result += _storage.Values[i] * other.At(_storage.Indices[i]);
+                    result += storageValues[i] * other.At(storageIndices[i]);
                 }
             }
             return result;
@@ -479,19 +506,22 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
         /// <returns>The sum of conj(a[i])*b[i] for all i.</returns>
         protected override Complex32 DoConjugateDotProduct(Vector<Complex32> other)
         {
+            var storageIndices = _storage.Indices;
+            var storageValues = _storage.Values;
+
             var result = Complex32.Zero;
             if (ReferenceEquals(this, other))
             {
                 for (var i = 0; i < _storage.ValueCount; i++)
                 {
-                    result += _storage.Values[i].Conjugate() * _storage.Values[i];
+                    result += storageValues[i].Conjugate() * storageValues[i];
                 }
             }
             else
             {
                 for (var i = 0; i < _storage.ValueCount; i++)
                 {
-                    result += _storage.Values[i].Conjugate() * other.At(_storage.Indices[i]);
+                    result += storageValues[i].Conjugate() * other.At(storageIndices[i]);
                 }
             }
             return result;
@@ -647,11 +677,13 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
                 return 0;
             }
 
+            var storageValues = _storage.Values;
+
             var index = 0;
-            var min = _storage.Values[index].Magnitude;
+            var min = storageValues[index].Magnitude;
             for (var i = 1; i < _storage.ValueCount; i++)
             {
-                var test = _storage.Values[i].Magnitude;
+                var test = storageValues[i].Magnitude;
                 if (test < min)
                 {
                     index = i;
@@ -674,11 +706,13 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
                 return 0;
             }
 
+            var storageValues = _storage.Values;
+
             var index = 0;
-            var max = _storage.Values[index].Magnitude;
+            var max = storageValues[index].Magnitude;
             for (var i = 1; i < _storage.ValueCount; i++)
             {
-                var test = _storage.Values[i].Magnitude;
+                var test = storageValues[i].Magnitude;
                 if (test > max)
                 {
                     index = i;
@@ -695,10 +729,12 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
         /// <returns>The sum of the vector's elements.</returns>
         public override Complex32 Sum()
         {
+            var storageValues = _storage.Values;
+
             var result = Complex32.Zero;
             for (var i = 0; i < _storage.ValueCount; i++)
             {
-                result += _storage.Values[i];
+                result += storageValues[i];
             }
             return result;
         }
@@ -709,10 +745,12 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
         /// <returns>The sum of the absolute values.</returns>
         public override double L1Norm()
         {
+            var storageValues = _storage.Values;
+
             double result = 0d;
             for (var i = 0; i < _storage.ValueCount; i++)
             {
-                result += _storage.Values[i].Magnitude;
+                result += storageValues[i].Magnitude;
             }
             return result;
         }
@@ -744,10 +782,12 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
             if (p == 2d) return L2Norm();
             if (double.IsPositiveInfinity(p)) return InfinityNorm();
 
+            var storageValues = _storage.Values;
+
             double sum = 0d;
             for (var index = 0; index < _storage.ValueCount; index++)
             {
-                sum += Math.Pow(_storage.Values[index].Magnitude, p);
+                sum += Math.Pow(storageValues[index].Magnitude, p);
             }
             return Math.Pow(sum, 1.0 / p);
         }
@@ -761,9 +801,11 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
         {
             if (ReferenceEquals(this, other) && ReferenceEquals(this, result))
             {
+                var storageValues = _storage.Values;
+
                 for (var i = 0; i < _storage.ValueCount; i++)
                 {
-                    _storage.Values[i] *= _storage.Values[i];
+                    storageValues[i] *= storageValues[i];
                 }
             }
             else

@@ -32,7 +32,7 @@ using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Solvers;
 using NUnit.Framework;
 
-namespace MathNet.Numerics.UnitTests.LinearAlgebraTests.Double.Solvers.StopCriterion
+namespace MathNet.Numerics.Tests.LinearAlgebraTests.Double.Solvers.StopCriterion
 {
     /// <summary>
     /// Iteration count stop criterion tests.
@@ -134,10 +134,8 @@ namespace MathNet.Numerics.UnitTests.LinearAlgebraTests.Double.Solvers.StopCrite
             var clonedCriterion = clone as IterationCountStopCriterion<double>;
             Assert.IsNotNull(clonedCriterion);
 
-            // ReSharper disable PossibleNullReferenceException
+            // ReSharper disable once PossibleNullReferenceException
             Assert.AreEqual(criterion.MaximumNumberOfIterations, clonedCriterion.MaximumNumberOfIterations, "Clone failed");
-
-            // ReSharper restore PossibleNullReferenceException
         }
     }
 }

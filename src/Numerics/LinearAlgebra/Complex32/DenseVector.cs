@@ -73,7 +73,6 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
         /// <summary>
         /// Create a new dense vector with the given length.
         /// All cells of the vector will be initialized to zero.
-        /// Zero-length vectors are not supported.
         /// </summary>
         /// <exception cref="ArgumentException">If length is less than one.</exception>
         public DenseVector(int length)
@@ -128,6 +127,17 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
         /// A new memory block will be allocated for storing the vector.
         /// </summary>
         public static DenseVector OfIndexedEnumerable(int length, IEnumerable<Tuple<int, Complex32>> enumerable)
+        {
+            return new DenseVector(DenseVectorStorage<Complex32>.OfIndexedEnumerable(length, enumerable));
+        }
+
+        /// <summary>
+        /// Create a new dense vector as a copy of the given indexed enumerable.
+        /// Keys must be provided at most once, zero is assumed if a key is omitted.
+        /// This new vector will be independent from the enumerable.
+        /// A new memory block will be allocated for storing the vector.
+        /// </summary>
+        public static DenseVector OfIndexedEnumerable(int length, IEnumerable<(int, Complex32)> enumerable)
         {
             return new DenseVector(DenseVectorStorage<Complex32>.OfIndexedEnumerable(length, enumerable));
         }
@@ -208,11 +218,12 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
         {
             if (result is DenseVector dense)
             {
+                var denseValues = dense._values;
                 CommonParallel.For(0, _values.Length, 4096, (a, b) =>
                 {
                     for (int i = a; i < b; i++)
                     {
-                        dense._values[i] = _values[i] + scalar;
+                        denseValues[i] = _values[i] + scalar;
                     }
                 });
             }
@@ -266,11 +277,12 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
         {
             if (result is DenseVector dense)
             {
+                var denseValues = dense._values;
                 CommonParallel.For(0, _values.Length, 4096, (a, b) =>
                 {
                     for (int i = a; i < b; i++)
                     {
-                        dense._values[i] = _values[i] - scalar;
+                        denseValues[i] = _values[i] - scalar;
                     }
                 });
             }
@@ -402,10 +414,11 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
         {
             if (other is DenseVector denseVector)
             {
+                var denseVectorValues = denseVector._values;
                 var dot = Complex32.Zero;
                 for (var i = 0; i < _values.Length; i++)
                 {
-                    dot += _values[i].Conjugate() * denseVector._values[i];
+                    dot += _values[i].Conjugate() * denseVectorValues[i];
                 }
 
                 return dot;
@@ -570,7 +583,7 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
         /// <returns>The maximum absolute value.</returns>
         public override double InfinityNorm()
         {
-            return CommonParallel.Aggregate(_values, (i, v) => v.Magnitude, Math.Max, 0f);
+            return CommonParallel.Aggregate(_values, (_, v) => v.Magnitude, Math.Max, 0f);
         }
 
         /// <summary>

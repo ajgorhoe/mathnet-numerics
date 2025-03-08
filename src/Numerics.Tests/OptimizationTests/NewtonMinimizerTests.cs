@@ -32,13 +32,13 @@ using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Numerics.Optimization;
 using MathNet.Numerics.Optimization.ObjectiveFunctions;
 using NUnit.Framework;
-using MathNet.Numerics.UnitTests.OptimizationTests.TestFunctions;
+using MathNet.Numerics.Tests.OptimizationTests.TestFunctions;
 using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 using NUnit.Framework.Interfaces;
 
-namespace MathNet.Numerics.UnitTests.OptimizationTests
+namespace MathNet.Numerics.Tests.OptimizationTests
 {
     public class LazyRosenbrockObjectiveFunction : LazyObjectiveFunctionBase
     {
@@ -101,7 +101,7 @@ namespace MathNet.Numerics.UnitTests.OptimizationTests
         [Test]
         public void FindMinimum_Rosenbrock_Hard()
         {
-            var obj = ObjectiveFunction.GradientHessian(point => Tuple.Create(RosenbrockFunction.Value(point), RosenbrockFunction.Gradient(point), RosenbrockFunction.Hessian(point)));
+            var obj = ObjectiveFunction.GradientHessian(point => (RosenbrockFunction.Value(point), RosenbrockFunction.Gradient(point), RosenbrockFunction.Hessian(point)));
             var solver = new NewtonMinimizer(1e-5, 1000);
             var result = solver.FindMinimum(obj, new DenseVector(new[] { -1.2, 1.0 }));
 

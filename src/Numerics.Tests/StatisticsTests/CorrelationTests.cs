@@ -35,7 +35,7 @@ using MathNet.Numerics.Statistics;
 using MathNet.Numerics.TestData;
 using System.Globalization;
 
-namespace MathNet.Numerics.UnitTests.StatisticsTests
+namespace MathNet.Numerics.Tests.StatisticsTests
 {
     /// <summary>
     /// Correlation tests
@@ -74,8 +74,8 @@ namespace MathNet.Numerics.UnitTests.StatisticsTests
                     return new Tuple<string, string>(vals[0], vals[1]);
                 }).ToArray();
 
-            var series = data.Select(tuple => Double.Parse(tuple.Item1, CultureInfo.InvariantCulture)).ToArray();
-            var resNumpy = data.Select(tuple => Double.Parse(tuple.Item2, CultureInfo.InvariantCulture)).ToArray();
+            var series = data.Select(tuple => double.Parse(tuple.Item1, CultureInfo.InvariantCulture)).ToArray();
+            var resNumpy = data.Select(tuple => double.Parse(tuple.Item2, CultureInfo.InvariantCulture)).ToArray();
 
             var resMathNet = Correlation.Auto(series);
 
@@ -92,7 +92,7 @@ namespace MathNet.Numerics.UnitTests.StatisticsTests
             var tol = 1e-14;
             var n = 10;
             // make some dummy data
-            var a = Generate.LinearSpacedMap(n, 0, 2*Constants.Pi, Math.Sin);
+            var a = Generate.LinearSpacedMap(n, 0, Constants.Pi2, Math.Sin);
 
             var idxs = new int[] { 2, 1, 7 };
 

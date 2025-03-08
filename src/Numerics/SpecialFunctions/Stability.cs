@@ -30,43 +30,11 @@
 using System;
 using Complex = System.Numerics.Complex;
 
-// ReSharper disable CheckNamespace
+// ReSharper disable once CheckNamespace
 namespace MathNet.Numerics
-// ReSharper restore CheckNamespace
 {
     public partial class SpecialFunctions
     {
-        /// <summary>
-        /// Numerically stable exponential minus one, i.e. <code>x -> exp(x)-1</code>
-        /// </summary>
-        /// <param name="power">A number specifying a power.</param>
-        /// <returns>Returns <code>exp(power)-1</code>.</returns>
-        public static double ExponentialMinusOne(double power)
-        {
-            double x = Math.Abs(power);
-            if (x > 0.1)
-            {
-                return Math.Exp(power) - 1.0;
-            }
-
-            if (x < x.PositiveEpsilonOf())
-            {
-                return x;
-            }
-
-            // Series Expansion to x^k / k!
-            int k = 0;
-            double term = 1.0;
-            return Evaluate.Series(
-                () =>
-                {
-                    k++;
-                    term *= power;
-                    term /= k;
-                    return term;
-                });
-        }
-
         /// <summary>
         /// Numerically stable hypotenuse of a right angle triangle, i.e. <code>(a,b) -> sqrt(a^2 + b^2)</code>
         /// </summary>
@@ -123,6 +91,11 @@ namespace MathNet.Numerics
         /// <returns>Returns <code>sqrt(a<sup>2</sup> + b<sup>2</sup>)</code> without underflow/overflow.</returns>
         public static double Hypotenuse(double a, double b)
         {
+            if (double.IsNaN(a) || double.IsNaN(b))
+            {
+                return double.NaN;
+            }
+
             if (Math.Abs(a) > Math.Abs(b))
             {
                 double r = b/a;

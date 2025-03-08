@@ -27,8 +27,8 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 // </copyright>
 
-#if !NETCOREAPP3_1
-// Rationale: System.Random is no longer serializable in .Net Core
+#if NET461_OR_GREATER
+// Rationale: System.Random is no longer serializable in .NET Core
 
 using System;
 using System.IO;
@@ -38,7 +38,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using MathNet.Numerics.Random;
 using NUnit.Framework;
 
-namespace MathNet.Numerics.UnitTests.Random
+namespace MathNet.Numerics.Tests.Random
 {
     [TestFixture]
     public class RandomSerializationTests

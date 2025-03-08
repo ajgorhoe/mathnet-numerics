@@ -32,7 +32,7 @@ using MathNet.Numerics.Distributions;
 using MathNet.Numerics.LinearAlgebra;
 using NUnit.Framework;
 
-namespace MathNet.Numerics.UnitTests.DistributionTests.Multivariate
+namespace MathNet.Numerics.Tests.DistributionTests.Multivariate
 {
     /// <summary>
     /// Matrix Normal tests.
@@ -250,7 +250,7 @@ namespace MathNet.Numerics.UnitTests.DistributionTests.Multivariate
             x[0, 0] = 2;
             x[0, 1] = 2;
 
-            AssertHelpers.AlmostEqualRelative(0.00015682927366491211, d.Density(x), 16);
+            AssertHelpers.AlmostEqualRelative(0.00015682927366491211, d.Density(x), 13);
         }
 
         /// <summary>

@@ -5,14 +5,14 @@ using System.Runtime.Serialization;
 using System.Linq;
 using Complex = System.Numerics.Complex;
 using System.Text;
+#if NET5_0_OR_GREATER
+using System.Text.Json.Serialization;
+#endif
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Numerics.LinearRegression;
 using MathNet.Numerics.LinearAlgebra.Factorization;
-
-#if !NETSTANDARD1_3
 using System.Runtime;
-#endif
 
 namespace MathNet.Numerics
 {
@@ -21,15 +21,15 @@ namespace MathNet.Numerics
     /// </summary>
     [Serializable]
     [DataContract(Namespace = "urn:MathNet/Numerics")]
-    public class Polynomial : IFormattable, IEquatable<Polynomial>
-#if !NETSTANDARD1_3
-        , ICloneable
-#endif
+    public class Polynomial : IFormattable, IEquatable<Polynomial>, ICloneable
     {
         /// <summary>
         /// The coefficients of the polynomial in a
         /// </summary>
         [DataMember(Order = 1)]
+#if NET5_0_OR_GREATER
+        [JsonInclude]
+#endif
         public double[] Coefficients { get; private set; }
 
         /// <summary>
@@ -64,11 +64,7 @@ namespace MathNet.Numerics
         /// </summary>
         public Polynomial()
         {
-#if NET40
-            Coefficients = new double[0];
-#else
             Coefficients = Array.Empty<double>();
-#endif
         }
 
         /// <summary>
@@ -80,11 +76,7 @@ namespace MathNet.Numerics
         {
             if (coefficient == 0.0)
             {
-#if NET40
-                Coefficients = new double[0];
-#else
                 Coefficients = Array.Empty<double>();
-#endif
             }
             else
             {
@@ -348,7 +340,7 @@ namespace MathNet.Numerics
             {
                 case -1: // Zero-polynomial
                 case 0: // Non-zero constant: y = a0
-                    return new Complex[0];
+                    return Array.Empty<Complex>();
                 case 1: // Linear: y = a0 + a1*x
                     return new[] { new Complex(-Coefficients[0] / Coefficients[1], 0) };
             }
@@ -630,7 +622,7 @@ namespace MathNet.Numerics
         /// <param name="a">Left polynomial</param>
         /// <param name="b">Right polynomial</param>
         /// <returns>A tuple holding quotient in first and remainder in second</returns>
-        public static Tuple<Polynomial, Polynomial> DivideRemainder(Polynomial a, Polynomial b)
+        public static (Polynomial, Polynomial) DivideRemainder(Polynomial a, Polynomial b)
         {
             var bDegree = b.Degree;
             if (bDegree < 0)
@@ -642,20 +634,20 @@ namespace MathNet.Numerics
             if (aDegree < 0)
             {
                 // zero divided by non-zero is zero without remainder
-                return Tuple.Create(a, a);
+                return (a, a);
             }
 
             if (bDegree == 0)
             {
                 // division by scalar
-                return Tuple.Create(Divide(a, b.Coefficients[0]), Zero);
+                return (Divide(a, b.Coefficients[0]), Zero);
             }
 
             if (aDegree < bDegree)
             {
                 // denominator degree higher than nominator degree
                 // quotient always be 0 and return c1 as remainder
-                return Tuple.Create(Zero, a);
+                return (Zero, a);
             }
 
             var c1 = a.Coefficients.ToArray();
@@ -697,7 +689,7 @@ namespace MathNet.Numerics
                 rem[k] = c1[k];
             }
 
-            return Tuple.Create(new Polynomial(quo), new Polynomial(rem));
+            return (new Polynomial(quo), new Polynomial(rem));
         }
 
         #endregion
@@ -762,7 +754,7 @@ namespace MathNet.Numerics
         /// </summary>
         /// <param name="b">Right polynomial</param>
         /// <returns>A tuple holding quotient in first and remainder in second</returns>
-        public Tuple<Polynomial, Polynomial> DivideRemainder(Polynomial b)
+        public (Polynomial, Polynomial) DivideRemainder(Polynomial b)
         {
             return DivideRemainder(this, b);
         }
@@ -1134,7 +1126,6 @@ namespace MathNet.Numerics
             return new Polynomial(coefficients);
         }
 
-#if !NETSTANDARD1_3
         /// <summary>
         /// Creates a new object that is a copy of the current instance.
         /// </summary>
@@ -1145,7 +1136,6 @@ namespace MathNet.Numerics
         {
             return Clone();
         }
-#endif
 
         #endregion
     }

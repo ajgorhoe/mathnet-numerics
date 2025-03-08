@@ -37,7 +37,7 @@ using NUnit.Framework;
 
 // ReSharper disable InvokeAsExtensionMethod
 
-namespace MathNet.Numerics.UnitTests.StatisticsTests
+namespace MathNet.Numerics.Tests.StatisticsTests
 {
     using Statistics;
 
@@ -1004,9 +1004,6 @@ namespace MathNet.Numerics.UnitTests.StatisticsTests
             Assert.That(new RunningStatistics(new[] { 2d, 3d }).PopulationVariance, Is.Not.NaN);
         }
 
-        /// <summary>
-        /// URL http://mathnetnumerics.codeplex.com/workitem/5667
-        /// </summary>
         [Test]
         public void Median_CodeplexIssue5667()
         {

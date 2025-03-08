@@ -10,21 +10,18 @@ namespace MathNet.Numerics.Optimization.TrustRegion
         /// <summary>
         /// The trust region subproblem.
         /// </summary>
-        public static ITrustRegionSubproblem Subproblem;
+        public ITrustRegionSubproblem Subproblem;
 
         /// <summary>
         /// The stopping threshold for the trust region radius.
         /// </summary>
-        public static double RadiusTolerance { get; set; }
+        public double RadiusTolerance { get; set; }
 
         public TrustRegionMinimizerBase(ITrustRegionSubproblem subproblem,
             double gradientTolerance = 1E-8, double stepTolerance = 1E-8, double functionTolerance = 1E-8, double radiusTolerance = 1E-8, int maximumIterations = -1)
             : base(gradientTolerance, stepTolerance, functionTolerance, maximumIterations)
         {
-            if (subproblem == null)
-                throw new ArgumentNullException("subproblem");
-
-            Subproblem = subproblem;
+            Subproblem = subproblem ?? throw new ArgumentNullException(nameof(subproblem));
             RadiusTolerance = radiusTolerance;
         }
 
@@ -38,12 +35,12 @@ namespace MathNet.Numerics.Optimization.TrustRegion
         public NonlinearMinimizationResult FindMinimum(IObjectiveModel objective, double[] initialGuess,
             double[] lowerBound = null, double[] upperBound = null, double[] scales = null, bool[] isFixed = null)
         {
-            var lb = (lowerBound == null) ? null : CreateVector.Dense<double>(lowerBound);
-            var ub = (upperBound == null) ? null : CreateVector.Dense<double>(upperBound);
-            var sc = (scales == null) ? null : CreateVector.Dense<double>(scales);
+            var lb = (lowerBound == null) ? null : CreateVector.Dense(lowerBound);
+            var ub = (upperBound == null) ? null : CreateVector.Dense(upperBound);
+            var sc = (scales == null) ? null : CreateVector.Dense(scales);
             var fx = (isFixed == null) ? null : isFixed.ToList();
 
-            return Minimum(Subproblem, objective, CreateVector.DenseOfArray<double>(initialGuess), lb, ub, sc, fx,
+            return Minimum(Subproblem, objective, CreateVector.DenseOfArray(initialGuess), lb, ub, sc, fx,
                 GradientTolerance, StepTolerance, FunctionTolerance, RadiusTolerance, MaximumIterations);
         }
 
@@ -59,7 +56,7 @@ namespace MathNet.Numerics.Optimization.TrustRegion
         /// <param name="radiusTolerance">The stopping threshold for trust region radius</param>
         /// <param name="maximumIterations">The max iterations.</param>
         /// <returns></returns>
-        public static NonlinearMinimizationResult Minimum(ITrustRegionSubproblem subproblem, IObjectiveModel objective, Vector<double> initialGuess,
+        public NonlinearMinimizationResult Minimum(ITrustRegionSubproblem subproblem, IObjectiveModel objective, Vector<double> initialGuess,
             Vector<double> lowerBound = null, Vector<double> upperBound = null, Vector<double> scales = null, List<bool> isFixed = null,
             double gradientTolerance = 1E-8, double stepTolerance = 1E-8, double functionTolerance = 1E-8, double radiusTolerance = 1E-18, int maximumIterations = -1)
         {
@@ -102,7 +99,7 @@ namespace MathNet.Numerics.Optimization.TrustRegion
             double eta = 0;
 
             if (objective == null)
-                throw new ArgumentNullException("objective");
+                throw new ArgumentNullException(nameof(objective));
 
             ValidateBounds(initialGuess, lowerBound, upperBound, scales);
 
@@ -112,7 +109,7 @@ namespace MathNet.Numerics.Optimization.TrustRegion
 
             // First, calculate function values and setup variables
             var P = ProjectToInternalParameters(initialGuess); // current internal parameters
-            var Pstep = Vector<double>.Build.Dense(P.Count); // the change of parameters
+            Vector<double> Pstep; // the change of parameters
             var RSS = EvaluateFunction(objective, initialGuess); // Residual Sum of Squares
 
             if (maximumIterations < 0)
@@ -140,9 +137,7 @@ namespace MathNet.Numerics.Optimization.TrustRegion
             }
 
             // evaluate projected gradient and Hessian
-            var jac = EvaluateJacobian(objective, P);
-            var Gradient = jac.Item1; // objective.Gradient;
-            var Hessian = jac.Item2; // objective.Hessian;
+            var (Gradient, Hessian) = EvaluateJacobian(objective, P);
 
             // if ||g||_oo <= gtol, found and stop
             if (Gradient.InfinityNorm() <= gradientTolerance)
@@ -160,7 +155,7 @@ namespace MathNet.Numerics.Optimization.TrustRegion
             delta = Math.Max(1.0, Math.Min(delta, maxDelta));
 
             int iterations = 0;
-            bool hitBoundary = false;
+            bool hitBoundary;
             while (iterations < maximumIterations && exitCondition == ExitCondition.None)
             {
                 iterations++;
@@ -216,9 +211,7 @@ namespace MathNet.Numerics.Optimization.TrustRegion
                     RSS = RSSnew;
 
                     // evaluate projected gradient and Hessian
-                    jac = EvaluateJacobian(objective, P);
-                    Gradient = jac.Item1; // objective.Gradient;
-                    Hessian = jac.Item2; // objective.Hessian;
+                    (Gradient, Hessian) = EvaluateJacobian(objective, P);
 
                     // if ||g||_oo <= gtol, found and stop
                     if (Gradient.InfinityNorm() <= gradientTolerance)

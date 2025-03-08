@@ -32,7 +32,7 @@ using NUnit.Framework;
 using System;
 using System.Linq;
 
-namespace MathNet.Numerics.UnitTests.DistributionTests.Continuous
+namespace MathNet.Numerics.Tests.DistributionTests.Continuous
 {
     /// <summary>
     /// <c>Burr</c> distribution tests.
@@ -57,9 +57,9 @@ namespace MathNet.Numerics.UnitTests.DistributionTests.Continuous
         public void CanCreateBurr(double a, double c, double k)
         {
             var n = new Burr(a, c, k);
-            Assert.AreEqual(a, n.a);
-            Assert.AreEqual(c, n.c);
-            Assert.AreEqual(k, n.k);
+            Assert.AreEqual(a, n.A);
+            Assert.AreEqual(c, n.C);
+            Assert.AreEqual(k, n.K);
         }
 
         /// <summary>
@@ -82,10 +82,10 @@ namespace MathNet.Numerics.UnitTests.DistributionTests.Continuous
         [TestCase(5.0, 1.0, -1.0)]
         [TestCase(-1.0, 1.0, 2.05)]
         [TestCase(1.0, -1.0, 2.05)]
-        [TestCase(Double.NaN, Double.NaN, Double.NaN)]
-        [TestCase(Double.NaN, 1.0, 2.4)]
+        [TestCase(double.NaN, double.NaN, double.NaN)]
+        [TestCase(double.NaN, 1.0, 2.4)]
         [TestCase(1.0, 1.0, double.PositiveInfinity)]
-        [TestCase(1.0, -1.0, Double.NegativeInfinity)]
+        [TestCase(1.0, -1.0, double.NegativeInfinity)]
         public void BurrCreateFailsWithBadParameters(double a, double c, double k)
         {
             Assert.That(() => new Burr(a, c, k), Throws.ArgumentException);
@@ -213,7 +213,7 @@ namespace MathNet.Numerics.UnitTests.DistributionTests.Continuous
         public void ValidateMaximum()
         {
             var n = new Burr(1.0, 2.0, 1.0);
-            Assert.AreEqual(Double.PositiveInfinity, n.Maximum);
+            Assert.AreEqual(double.PositiveInfinity, n.Maximum);
         }
 
         /// <summary>

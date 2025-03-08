@@ -35,7 +35,7 @@ using Complex = System.Numerics.Complex;
 using System.Runtime.Serialization;
 using NUnit.Framework;
 
-namespace MathNet.Numerics.UnitTests
+namespace MathNet.Numerics.Tests
 {
     /// <Note>
     /// some of these tests were inspired by numpys tests in python for the Polynomial functions.
@@ -444,7 +444,7 @@ namespace MathNet.Numerics.UnitTests
             }
 
             // static Complex Evaluate(Complex, double[])
-            {                
+            {
                 var actual = Polynomial.Evaluate(zComplex, c);
                 Assert.AreEqual(expectedComplex, actual);
             }
@@ -466,8 +466,21 @@ namespace MathNet.Numerics.UnitTests
                 var actual = p.Evaluate(zComplex);
                 Assert.AreEqual(expectedComplex, actual);
             }
-                        
+
         }
+
+#if NET5_0_OR_GREATER
+        [Test]
+        public void JsonDeserializationTest()
+        {
+            var polynomial = new Polynomial(0, 1, 2);
+            var json = System.Text.Json.JsonSerializer.Serialize(polynomial);
+            var deserialize = System.Text.Json.JsonSerializer.Deserialize<Polynomial>(json);
+            Assert.NotNull(deserialize);
+            Assert.AreEqual(polynomial.Coefficients.Length, deserialize.Coefficients.Length);
+            Assert.IsTrue(polynomial.Coefficients.SequenceEqual(deserialize.Coefficients));
+        }
+#endif
 
     }
 

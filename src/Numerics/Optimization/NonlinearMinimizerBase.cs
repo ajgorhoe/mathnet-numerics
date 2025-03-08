@@ -9,39 +9,39 @@ namespace MathNet.Numerics.Optimization
         /// <summary>
         /// The stopping threshold for the function value or L2 norm of the residuals.
         /// </summary>
-        public static double FunctionTolerance { get; set; }
+        public double FunctionTolerance { get; set; }
 
         /// <summary>
         /// The stopping threshold for L2 norm of the change of the parameters.
         /// </summary>
-        public static double StepTolerance { get; set; }
+        public double StepTolerance { get; set; }
 
         /// <summary>
         /// The stopping threshold for infinity norm of the gradient.
         /// </summary>
-        public static double GradientTolerance { get; set; }
+        public double GradientTolerance { get; set; }
 
         /// <summary>
         /// The maximum number of iterations.
         /// </summary>
-        public static int MaximumIterations { get; set; }
+        public int MaximumIterations { get; set; }
 
         /// <summary>
         /// The lower bound of the parameters.
         /// </summary>
-        public static Vector<double> LowerBound { get; private set; }
+        public Vector<double> LowerBound { get; private set; }
 
         /// <summary>
         /// The upper bound of the parameters.
         /// </summary>
-        public static Vector<double> UpperBound { get; private set; }
+        public Vector<double> UpperBound { get; private set; }
 
         /// <summary>
         /// The scale factors for the parameters.
         /// </summary>
-        public static Vector<double> Scales { get; private set; }
+        public Vector<double> Scales { get; private set; }
 
-        private static bool IsBounded => LowerBound != null || UpperBound != null || Scales != null;
+        bool IsBounded => LowerBound != null || UpperBound != null || Scales != null;
 
         protected NonlinearMinimizerBase(double gradientTolerance = 1E-18, double stepTolerance = 1E-18, double functionTolerance = 1E-18, int maximumIterations = -1)
         {
@@ -51,11 +51,11 @@ namespace MathNet.Numerics.Optimization
             MaximumIterations = maximumIterations;
         }
 
-        protected static void ValidateBounds(Vector<double> parameters, Vector<double> lowerBound = null, Vector<double> upperBound = null, Vector<double> scales = null)
+        protected void ValidateBounds(Vector<double> parameters, Vector<double> lowerBound = null, Vector<double> upperBound = null, Vector<double> scales = null)
         {
             if (parameters == null)
             {
-                throw new ArgumentNullException("parameters");
+                throw new ArgumentNullException(nameof(parameters));
             }
 
             if (lowerBound != null && lowerBound.Count(x => double.IsInfinity(x) || double.IsNaN(x)) > 0)
@@ -74,7 +74,7 @@ namespace MathNet.Numerics.Optimization
             }
             if (upperBound != null && upperBound.Count != parameters.Count)
             {
-                throw new ArgumentException("The upper bounds can't have different size from the parameetrs.");
+                throw new ArgumentException("The upper bounds can't have different size from the parameters.");
             }
             UpperBound = upperBound;
 
@@ -93,14 +93,14 @@ namespace MathNet.Numerics.Optimization
             Scales = scales;
         }
 
-        protected static double EvaluateFunction(IObjectiveModel objective, Vector<double> Pint)
+        protected double EvaluateFunction(IObjectiveModel objective, Vector<double> Pint)
         {
             var Pext = ProjectToExternalParameters(Pint);
             objective.EvaluateAt(Pext);
             return objective.Value;
         }
 
-        protected static Tuple<Vector<double>, Matrix<double>> EvaluateJacobian(IObjectiveModel objective, Vector<double> Pint)
+        protected (Vector<double> Gradient, Matrix<double> Hessian) EvaluateJacobian(IObjectiveModel objective, Vector<double> Pint)
         {
             var gradient = objective.Gradient;
             var hessian = objective.Hessian;
@@ -123,7 +123,7 @@ namespace MathNet.Numerics.Optimization
                 }
             }
 
-            return new Tuple<Vector<double>, Matrix<double>>(gradient, hessian);
+            return (gradient, hessian);
         }
 
         #region Projection of Parameters
@@ -161,7 +161,7 @@ namespace MathNet.Numerics.Optimization
         // Except when it is initial guess, the parameters argument is always internal parameter.
         // So, first map the parameters argument to the external parameters in order to calculate function values.
 
-        protected static Vector<double> ProjectToInternalParameters(Vector<double> Pext)
+        protected Vector<double> ProjectToInternalParameters(Vector<double> Pext)
         {
             var Pint = Pext.Clone();
 
@@ -174,7 +174,8 @@ namespace MathNet.Numerics.Optimization
 
                 return Pint;
             }
-            else if (LowerBound != null && UpperBound == null)
+
+            if (LowerBound != null && UpperBound == null)
             {
                 for (int i = 0; i < Pext.Count; i++)
                 {
@@ -185,7 +186,8 @@ namespace MathNet.Numerics.Optimization
 
                 return Pint;
             }
-            else if (LowerBound == null && UpperBound != null)
+
+            if (LowerBound == null && UpperBound != null)
             {
                 for (int i = 0; i < Pext.Count; i++)
                 {
@@ -196,7 +198,8 @@ namespace MathNet.Numerics.Optimization
 
                 return Pint;
             }
-            else if (Scales != null)
+
+            if (Scales != null)
             {
                 for (int i = 0; i < Pext.Count; i++)
                 {
@@ -209,7 +212,7 @@ namespace MathNet.Numerics.Optimization
             return Pint;
         }
 
-        protected static Vector<double> ProjectToExternalParameters(Vector<double> Pint)
+        protected Vector<double> ProjectToExternalParameters(Vector<double> Pint)
         {
             var Pext = Pint.Clone();
 
@@ -222,7 +225,8 @@ namespace MathNet.Numerics.Optimization
 
                 return Pext;
             }
-            else if (LowerBound != null && UpperBound == null)
+
+            if (LowerBound != null && UpperBound == null)
             {
                 for (int i = 0; i < Pint.Count; i++)
                 {
@@ -233,7 +237,8 @@ namespace MathNet.Numerics.Optimization
 
                 return Pext;
             }
-            else if (LowerBound == null && UpperBound != null)
+
+            if (LowerBound == null && UpperBound != null)
             {
                 for (int i = 0; i < Pint.Count; i++)
                 {
@@ -244,7 +249,8 @@ namespace MathNet.Numerics.Optimization
 
                 return Pext;
             }
-            else if (Scales != null)
+
+            if (Scales != null)
             {
                 for (int i = 0; i < Pint.Count; i++)
                 {
@@ -257,7 +263,7 @@ namespace MathNet.Numerics.Optimization
             return Pext;
         }
 
-        protected static Vector<double> ScaleFactorsOfJacobian(Vector<double> Pint)
+        protected Vector<double> ScaleFactorsOfJacobian(Vector<double> Pint)
         {
             var scale = Vector<double>.Build.Dense(Pint.Count, 1.0);
 
@@ -269,7 +275,8 @@ namespace MathNet.Numerics.Optimization
                 }
                 return scale;
             }
-            else if (LowerBound != null && UpperBound == null)
+
+            if (LowerBound != null && UpperBound == null)
             {
                 for (int i = 0; i < Pint.Count; i++)
                 {
@@ -279,7 +286,8 @@ namespace MathNet.Numerics.Optimization
                 }
                 return scale;
             }
-            else if (LowerBound == null && UpperBound != null)
+
+            if (LowerBound == null && UpperBound != null)
             {
                 for (int i = 0; i < Pint.Count; i++)
                 {
@@ -289,7 +297,8 @@ namespace MathNet.Numerics.Optimization
                 }
                 return scale;
             }
-            else if (Scales != null)
+
+            if (Scales != null)
             {
                 return Scales;
             }

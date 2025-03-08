@@ -28,30 +28,25 @@
 // </copyright>
 
 using System;
-using MathNet.Numerics.Providers.Common.Mkl;
+using System.IO;
 using NUnit.Framework;
 using NUnit.Framework.Interfaces;
 
-namespace MathNet.Numerics.UnitTests
+namespace MathNet.Numerics.Tests
 {
     [AttributeUsage(AttributeTargets.Assembly)]
     public class UseLinearAlgebraProvider : Attribute, ITestAction
     {
         public void BeforeTest(ITest testDetails)
         {
-
-#if NATIVE
-            string outDir = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), @"../../../../../out/");
+            string outDir = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), @"../../../../../out/"));
 #if MKL
-            Control.NativeProviderPath = System.IO.Path.Combine(outDir, @"MKL/Windows/");
-            Control.UseNativeMKL(MklConsistency.AVX, MklPrecision.Double, MklAccuracy.High);
+            Control.NativeProviderPath = Path.GetFullPath(Path.Combine(outDir, @"MKL/Windows/"));
+            Control.UseNativeMKL();
 #elif CUDA
             Control.UseNativeCUDA();
 #elif OPENBLAS
             Control.UseNativeOpenBLAS();
-#else
-            Control.UseManaged();
-#endif
 #else
             Control.UseManaged();
 #endif
@@ -66,9 +61,6 @@ namespace MathNet.Numerics.UnitTests
         {
         }
 
-        public ActionTargets Targets
-        {
-            get { return ActionTargets.Suite; }
-        }
+        public ActionTargets Targets => ActionTargets.Suite;
     }
 }

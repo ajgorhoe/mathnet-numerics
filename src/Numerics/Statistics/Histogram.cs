@@ -46,15 +46,12 @@ namespace MathNet.Numerics.Statistics
     /// </remarks>
     [Serializable]
     [DataContract(Namespace = "urn:MathNet/Numerics")]
-    public class Bucket : IComparable<Bucket>
-#if !NETSTANDARD1_3
-        , ICloneable
-#endif
+    public class Bucket : IComparable<Bucket>, ICloneable
     {
         /// <summary>
         /// This <c>IComparer</c> performs comparisons between a point and a bucket.
         /// </summary>
-        private sealed class PointComparer : IComparer<Bucket>
+        sealed class PointComparer : IComparer<Bucket>
         {
             /// <summary>
             /// Compares a point and a bucket. The point will be encapsulated in a bucket with width 0.
@@ -70,7 +67,7 @@ namespace MathNet.Numerics.Statistics
             }
         }
 
-        private static readonly PointComparer Comparer = new PointComparer();
+        static readonly PointComparer Comparer = new PointComparer();
 
         /// <summary>
         /// Lower Bound of the Bucket.
@@ -143,7 +140,7 @@ namespace MathNet.Numerics.Statistics
         /// True if this is a single point argument for <see cref="IComparer{Bucket}"/>
         /// when performing a Binary search.
         /// </summary>
-        private bool IsSinglePoint => double.IsNaN(Count);
+        bool IsSinglePoint => double.IsNaN(Count);
 
         /// <summary>
         /// Default comparer.
@@ -250,13 +247,13 @@ namespace MathNet.Numerics.Statistics
         /// Contains all the <c>Bucket</c>s of the <c>Histogram</c>.
         /// </summary>
         [DataMember(Order = 1)]
-        private readonly List<Bucket> _buckets;
+        readonly List<Bucket> _buckets;
 
         /// <summary>
         /// Indicates whether the elements of <c>buckets</c> are currently sorted.
         /// </summary>
         [DataMember(Order = 2)]
-        private bool _areBucketsSorted;
+        bool _areBucketsSorted;
 
         /// <summary>
         /// Initializes a new instance of the Histogram class.
@@ -387,7 +384,7 @@ namespace MathNet.Numerics.Statistics
         /// <summary>
         /// Sort the buckets if needed.
         /// </summary>
-        private void LazySort()
+        void LazySort()
         {
             if (!_areBucketsSorted)
             {

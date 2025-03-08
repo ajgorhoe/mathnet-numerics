@@ -47,7 +47,7 @@ namespace MathNet.Numerics.Statistics
     /// It is not recommended to rely on this mechanism for durable persistence.
     /// </remarks>
     [DataContract(Namespace = "urn:MathNet/Numerics")]
-    public class RunningStatistics
+    public sealed class RunningStatistics
     {
         [DataMember(Order = 1)]
         long _n;
@@ -72,6 +72,17 @@ namespace MathNet.Numerics.Statistics
 
         public RunningStatistics()
         {
+        }
+        
+        public RunningStatistics(RunningStatistics runningStatistics)
+        {
+            _n = runningStatistics._n;
+            _min = runningStatistics._min;
+            _max = runningStatistics._max;
+            _m1 = runningStatistics._m1;
+            _m2 = runningStatistics._m2;
+            _m3 = runningStatistics._m3;
+            _m4 = runningStatistics._m4;
         }
 
         public RunningStatistics(IEnumerable<double> values)
@@ -145,14 +156,14 @@ namespace MathNet.Numerics.Statistics
         public double PopulationSkewness => _n < 2 ? double.NaN : Math.Sqrt(_n)*_m3/Math.Pow(_m2, 1.5);
 
         /// <summary>
-        /// Estimates the unbiased population kurtosis from the provided samples.
+        /// Estimates the unbiased population excess kurtosis from the provided samples.
         /// Uses a normalizer (Bessel's correction; type 2).
         /// Returns NaN if data has less than four entries or if any entry is NaN.
         /// </summary>
         public double Kurtosis => _n < 4 ? double.NaN : ((double)_n*_n - 1)/((_n - 2)*(_n - 3))*(_n*_m4/(_m2*_m2) - 3 + 6.0/(_n + 1));
 
         /// <summary>
-        /// Evaluates the population kurtosis from the full population.
+        /// Evaluates the population excess kurtosis from the full population.
         /// Does not use a normalizer and would thus be biased if applied to a subset (type 1).
         /// Returns NaN if data has less than three entries or if any entry is NaN.
         /// </summary>
@@ -203,11 +214,11 @@ namespace MathNet.Numerics.Statistics
         {
             if (a._n == 0)
             {
-                return b;
+                return new RunningStatistics(b);
             }
-            else if (b._n == 0)
+            if (b._n == 0)
             {
-                return a;
+                return new RunningStatistics(a);
             }
 
             long n = a._n + b._n;

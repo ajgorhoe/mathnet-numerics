@@ -49,13 +49,13 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32.Solvers
         // The diagonal (stored in alu(0:n-1) ) is inverted. Each i-th row of the matrix
         // contains the i-th row of L (excluding the diagonal entry = 1) followed by
         // the i-th row of U.
-        private Complex32[] _alu;
+        Complex32[] _alu;
 
         // The row pointers (stored in jlu(0:n) ) and column indices to off-diagonal elements.
-        private int[] _jlu;
+        int[] _jlu;
 
         // Pointer to the diagonal elements in MSR storage (for faster LU solving).
-        private int[] _diag;
+        int[] _diag;
 
         /// <param name="modified">Use modified or standard ILU(0)</param>
         public MILU0Preconditioner(bool modified = true)
@@ -82,8 +82,7 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32.Solvers
         /// instance of SparseCompressedRowMatrixStorage.</exception>
         public void Initialize(Matrix<Complex32> matrix)
         {
-            var csr = matrix.Storage as SparseCompressedRowMatrixStorage<Complex32>;
-            if (csr == null)
+            if (!(matrix.Storage is SparseCompressedRowMatrixStorage<Complex32> csr))
             {
                 throw new ArgumentException("Matrix must be in sparse storage format", nameof(matrix));
             }
@@ -165,7 +164,7 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32.Solvers
         /// <param name="ju">Pointer to diagonal elements (output).</param>
         /// <param name="modified">True if the modified/MILU algorithm should be used (recommended)</param>
         /// <returns>Returns 0 on success or k > 0 if a zero pivot was encountered at step k.</returns>
-        private int Compute(int n, Complex32[] a, int[] ja, int[] ia, Complex32[] alu, int[] jlu, int[] ju, bool modified)
+        int Compute(int n, Complex32[] a, int[] ja, int[] ia, Complex32[] alu, int[] jlu, int[] ju, bool modified)
         {
             var iw = new int[n];
             int i;

@@ -32,7 +32,7 @@ using System.Threading;
 using MathNet.Numerics.Random;
 using NUnit.Framework;
 
-namespace MathNet.Numerics.UnitTests.Random
+namespace MathNet.Numerics.Tests.Random
 {
     /// <summary>
     /// Abstract class fro RNG tests.
@@ -78,8 +78,7 @@ namespace MathNet.Numerics.UnitTests.Random
             Assert.IsTrue(sum >= (N/2.0) - (.05*N));
             Assert.IsTrue(sum <= (N/2.0) + (.05*N));
 
-            var disposable = random as IDisposable;
-            if (disposable != null)
+            if (random is IDisposable disposable)
             {
                 disposable.Dispose();
             }
@@ -101,8 +100,7 @@ namespace MathNet.Numerics.UnitTests.Random
                 Assert.IsTrue(next < j, string.Format("Value {0} is larger or equal to upper bound {1}", next, j));
             }
 
-            var disposable = random as IDisposable;
-            if (disposable != null)
+            if (random is IDisposable disposable)
             {
                 disposable.Dispose();
             }
@@ -135,6 +133,20 @@ namespace MathNet.Numerics.UnitTests.Random
             t2.Start(random);
             t1.Join();
             t2.Join();
+        }
+
+        /// <summary>
+        /// NextBytes fills buffers of different sizes without throwing an exception (e.g. OutOfRangeException)
+        /// </remarks>
+        [Test]
+        public void NextBytesDoesNotThrow()
+        {
+            var rng = (System.Random)Activator.CreateInstance(_randomType, new object[] { false });
+
+            for (int i = 1; i < 30; i++)
+            {
+                Assert.DoesNotThrow(() => rng.NextBytes(new byte[i]));
+            }
         }
 
         /// <summary>

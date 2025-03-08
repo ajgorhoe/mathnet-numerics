@@ -44,85 +44,15 @@
 // </contribution>
 
 using System;
-using Complex = System.Numerics.Complex;
 
-// ReSharper disable CheckNamespace
+// ReSharper disable once CheckNamespace
 namespace MathNet.Numerics
-// ReSharper restore CheckNamespace
 {
     /// <summary>
     /// Evaluation functions, useful for function approximation.
     /// </summary>
-    public static class Evaluate
+    internal static class Evaluate
     {
-        /// <summary>
-        /// Evaluate a polynomial at point x.
-        /// Coefficients are ordered by power with power k at index k.
-        /// Example: coefficients [3,-1,2] represent y=2x^2-x+3.
-        /// </summary>
-        /// <param name="z">The location where to evaluate the polynomial at.</param>
-        /// <param name="coefficients">The coefficients of the polynomial, coefficient for power k at index k.</param>
-        [Obsolete("Use Polynomial.Evaluate instead. Will be removed in the next major version.")]
-        public static double Polynomial(double z, params double[] coefficients)
-        {
-            return Numerics.Polynomial.Evaluate(z, coefficients);
-        }
-
-        /// <summary>
-        /// Evaluate a polynomial at point x.
-        /// Coefficients are ordered by power with power k at index k.
-        /// Example: coefficients [3,-1,2] represent y=2x^2-x+3.
-        /// </summary>
-        /// <param name="z">The location where to evaluate the polynomial at.</param>
-        /// <param name="coefficients">The coefficients of the polynomial, coefficient for power k at index k.</param>
-        [Obsolete("Use Polynomial.Evaluate instead. Will be removed in the next major version.")]
-        public static Complex Polynomial(Complex z, params double[] coefficients)
-        {
-            return Numerics.Polynomial.Evaluate(z, coefficients);
-        }
-
-        /// <summary>
-        /// Evaluate a polynomial at point x.
-        /// Coefficients are ordered by power with power k at index k.
-        /// Example: coefficients [3,-1,2] represent y=2x^2-x+3.
-        /// </summary>
-        /// <param name="z">The location where to evaluate the polynomial at.</param>
-        /// <param name="coefficients">The coefficients of the polynomial, coefficient for power k at index k.</param>
-        [Obsolete("Use Polynomial.Evaluate instead. Will be removed in the next major version.")]
-        public static Complex Polynomial(Complex z, params Complex[] coefficients)
-        {
-            return Numerics.Polynomial.Evaluate(z, coefficients);
-        }
-
-        /// <summary>
-        /// Numerically stable series summation
-        /// </summary>
-        /// <param name="nextSummand">provides the summands sequentially</param>
-        /// <returns>Sum</returns>
-        internal static double Series(Func<double> nextSummand)
-        {
-            double compensation = 0.0;
-            double current;
-            const double factor = 1 << 16;
-
-            double sum = nextSummand();
-
-            do
-            {
-                // Kahan Summation
-                // NOTE (ruegg): do NOT optimize. Now, how to tell that the compiler?
-                current = nextSummand();
-                double y = current - compensation;
-                double t = sum + y;
-                compensation = t - sum;
-                compensation -= y;
-                sum = t;
-            }
-            while (Math.Abs(sum) < Math.Abs(factor*current));
-
-            return sum;
-        }
-
         /// <summary> Evaluates the series of Chebyshev polynomials Ti at argument x/2.
         /// The series is given by
         /// <pre>

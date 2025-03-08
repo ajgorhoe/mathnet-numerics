@@ -1,4 +1,4 @@
-﻿// <copyright file="CubicSpline.cs" company="Math.NET">
+// <copyright file="CubicSpline.cs" company="Math.NET">
 // Math.NET Numerics, part of the Math.NET Project
 // http://numerics.mathdotnet.com
 // http://github.com/mathnet/mathnet-numerics
@@ -211,6 +211,229 @@ namespace MathNet.Numerics.Interpolation
         }
 
         /// <summary>
+        /// Creates a modified Akima (makima) cubic spline interpolation from a set of (x,y) value pairs,
+        /// sorted ascendingly by x.
+        /// </summary>
+        /// <param name="x">Sample points (must be sorted ascendingly)</param>
+        /// <param name="y">Sample values corresponding to x</param>
+        /// <returns>A CubicSpline instance using the makima method</returns>
+        public static CubicSpline InterpolateMakimaSorted(double[] x, double[] y)
+        {
+            if (x.Length != y.Length)
+            {
+                throw new ArgumentException("All vectors must have the same dimensionality.");
+            }
+            if (x.Length < 5)
+            {
+                throw new ArgumentException("The given array is too small. It must be at least 5 long.", nameof(x));
+            }
+
+            var n = x.Length;
+            var dx = new double[n - 1];
+            for (var i = 0; i < n - 1; i++)
+            {
+                dx[i] = x[i + 1] - x[i];
+            }
+
+            // Allocate m with padding: length = n + 3
+            var mLen = n + 3;
+            var m = new double[mLen];
+            // m[2] .. m[n+1] : slopes between adjacent points.
+            for (var i = 0; i < n - 1; i++)
+            {
+                m[i + 2] = (y[i + 1] - y[i]) / dx[i];
+            }
+
+            // Extrapolate two additional points on the left.
+            m[1] = 2 * m[2] - m[3];
+            m[0] = 2 * m[1] - m[2];
+
+            // Extrapolate two additional points on the right.
+            m[n + 1] = 2 * m[n] - m[n - 1];
+            m[n + 2] = 2 * m[n + 1] - m[n];
+
+            // Compute differences (dm) and sums (pm) for makima weights.
+            var dmLen = mLen - 1;
+            var dm = new double[dmLen];
+            var pm = new double[dmLen];
+            for (var i = 0; i < dmLen; i++)
+            {
+                dm[i] = Math.Abs(m[i + 1] - m[i]);
+                pm[i] = Math.Abs(m[i + 1] + m[i]);
+            }
+
+            // Compute modified weights: f1 and f2 for indices 0 .. n-1.
+            var f1 = new double[n];
+            var f2 = new double[n];
+            for (var i = 0; i < n; i++)
+            {
+                f1[i] = dm[i + 2] + 0.5 * pm[i + 2];
+                f2[i] = dm[i] + 0.5 * pm[i];
+            }
+            var f12 = new double[n];
+            for (var i = 0; i < n; i++)
+            {
+                f12[i] = f1[i] + f2[i];
+            }
+
+            // Initial derivative estimates: t[i] = 0.5*(m[i+3] + m[i])
+            var t = new double[n];
+            for (var i = 0; i < n; i++)
+            {
+                t[i] = 0.5 * (m[i + 3] + m[i]);
+            }
+
+            // Determine threshold from maximum of f12.
+            var maxF12 = 0.0;
+            for (var i = 0; i < n; i++)
+            {
+                if (f12[i] > maxF12)
+                    maxF12 = f12[i];
+            }
+            var threshold = 1e-9 * maxF12;
+
+            // For indices where f12 is significant, update t[i] using weighted average.
+            for (var i = 0; i < n; i++)
+            {
+                if (f12[i] > threshold)
+                {
+                    t[i] = (f1[i] * m[i + 1] + f2[i] * m[i + 2]) / f12[i];
+                }
+            }
+
+            // Construct the Hermite cubic spline using the computed derivatives.
+            return InterpolateHermiteSorted(x, y, t);
+        }
+
+        /// <summary>
+        /// Creates a modified Akima (makima) cubic spline interpolation from an unsorted set of (x,y) value pairs.
+        /// WARNING: This method works in-place and will sort the input arrays.
+        /// </summary>
+        /// <param name="x">Sample points</param>
+        /// <param name="y">Sample values corresponding to x</param>
+        /// <returns>A CubicSpline instance using the makima method</returns>
+        public static CubicSpline InterpolateMakimaInplace(double[] x, double[] y)
+        {
+            // Sorting.Sort is assumed to sort x and apply the same permutation to y.
+            Sorting.Sort(x, y);
+            return InterpolateMakimaSorted(x, y);
+        }
+
+        /// <summary>
+        /// Creates a modified Akima (makima) cubic spline interpolation from an unsorted set of (x,y) value pairs.
+        /// </summary>
+        /// <param name="x">Sample points as an IEnumerable</param>
+        /// <param name="y">Sample values corresponding to x as an IEnumerable</param>
+        /// <returns>A CubicSpline instance using the makima method</returns>
+        public static CubicSpline InterpolateMakima(IEnumerable<double> x, IEnumerable<double> y)
+        {
+            return InterpolateMakimaInplace(x.ToArray(), y.ToArray());
+        }
+
+        /// <summary>
+        /// Create a piecewise cubic Hermite interpolating polynomial from an unsorted set of (x,y) value pairs.
+        /// Monotone-preserving interpolation with continuous first derivative.
+        /// </summary>
+        public static CubicSpline InterpolatePchipSorted(double[] x, double[] y)
+        {
+            // Implementation based on "Numerical Computing with Matlab" (Moler, 2004).
+
+            if (x.Length != y.Length)
+            {
+                throw new ArgumentException("All vectors must have the same dimensionality.");
+            }
+
+            if (x.Length < 3)
+            {
+                throw new ArgumentException("The given array is too small. It must be at least 3 long.", nameof(x));
+            }
+
+            var m = new double[x.Length - 1];
+
+            for (int i = 0; i < m.Length; i++)
+            {
+                m[i] = (y[i + 1] - y[i])/(x[i + 1] - x[i]);
+            }
+
+            var dd = new double[x.Length];
+            var hPrev = x[1] - x[0];
+            var mPrevIs0 = m[0].AlmostEqual(0.0);
+
+            for (var i = 1; i < x.Length - 1; ++i)
+            {
+                var h = x[i + 1] - x[i];
+                var mIs0 = m[i].AlmostEqual(0.0);
+
+                if (mIs0 || mPrevIs0 || Math.Sign(m[i]) != Math.Sign(m[i - 1]))
+                {
+                    dd[i] = 0;
+                }
+                else
+                {
+                    // Weighted harmonic mean of each slope.
+                    var w1 = 2 * h + hPrev;
+                    var w2 = h + 2 * hPrev;
+                    dd[i] = (w1 + w2) / (w1 / m[i - 1] + w2 / m[i]);
+                }
+
+                hPrev = h;
+                mPrevIs0 = mIs0;
+            }
+
+            // Special case end-points.
+            dd[0] = PchipEndPoints(x[1] - x[0], x[2] - x[1], m[0], m[1]);
+            dd[dd.Length - 1] = PchipEndPoints(
+                x[x.Length - 1] - x[x.Length - 2], x[x.Length - 2] - x[x.Length - 3],
+                m[m.Length - 1], m[m.Length - 2]);
+
+            return InterpolateHermiteSorted(x, y, dd);
+        }
+
+        static double PchipEndPoints(double h0, double h1, double m0, double m1)
+        {
+            // One-sided, shape-preserving, three-point estimate for the derivative.
+            var d = ((2 * h0 + h1) * m0 - h0 * m1) / (h0 + h1);
+
+            if (Math.Sign(d) != Math.Sign(m0))
+            {
+                return 0.0;
+            }
+
+            if (Math.Sign(m0) != Math.Sign(m1) && (Math.Abs(d) > 3 * Math.Abs(m0)))
+            {
+                return 3 * m0;
+            }
+
+            return d;
+        }
+
+        /// <summary>
+        /// Create a piecewise cubic Hermite interpolating polynomial from an unsorted set of (x,y) value pairs.
+        /// Monotone-preserving interpolation with continuous first derivative.
+        /// WARNING: Works in-place and can thus causes the data array to be reordered.
+        /// </summary>
+        public static CubicSpline InterpolatePchipInplace(double[] x, double[] y)
+        {
+            if (x.Length != y.Length)
+            {
+                throw new ArgumentException("All vectors must have the same dimensionality.");
+            }
+
+            Sorting.Sort(x, y);
+            return InterpolatePchipSorted(x, y);
+        }
+
+        /// <summary>
+        /// Create a piecewise cubic Hermite interpolating polynomial from an unsorted set of (x,y) value pairs.
+        /// Monotone-preserving interpolation with continuous first derivative.
+        /// </summary>
+        public static CubicSpline InterpolatePchip(IEnumerable<double> x, IEnumerable<double> y)
+        {
+            // note: we must make a copy, even if the input was arrays already
+            return InterpolatePchipInplace(x.ToArray(), y.ToArray());
+        }
+
+        /// <summary>
         /// Create a cubic spline interpolation from a set of (x,y) value pairs, sorted ascendingly by x,
         /// and custom boundary/termination conditions.
         /// </summary>
@@ -398,7 +621,7 @@ namespace MathNet.Numerics.Interpolation
             double t1 = xx[index1] - xx[index0];
             double t2 = xx[index2] - xx[index0];
 
-            double a = (x2 - x0 - (t2/t1*(x1 - x0)))/(t2*t2 - t1*t2);
+            double a = (x2 - x0 - (t2/t1*(x1 - x0)))/(t2*(t2 - t1));
             double b = (x1 - x0 - a*t1*t1)/t1;
             return (2*a*t) + b;
         }
@@ -492,10 +715,7 @@ namespace MathNet.Numerics.Interpolation
         /// </summary>
         /// <param name="a">Left bound of the integration interval [a,b].</param>
         /// <param name="b">Right bound of the integration interval [a,b].</param>
-        public double Integrate(double a, double b)
-        {
-            return Integrate(b) - Integrate(a);
-        }
+        public double Integrate(double a, double b) => Integrate(b) - Integrate(a);
 
         double[] ComputeIndefiniteIntegral()
         {
@@ -522,6 +742,91 @@ namespace MathNet.Numerics.Interpolation
             }
 
             return Math.Min(Math.Max(index, 0), _x.Length - 2);
+        }
+
+        /// <summary>
+        /// Gets all the t values where the derivative is 0
+        /// see: https://mathworld.wolfram.com/StationaryPoint.html
+        /// </summary>
+        /// <returns>An array of t values (in the domain of the function) where the derivative of the spline is 0</returns>
+        public double[] StationaryPoints()
+        {
+            List<double> points = new List<double>();
+            for (int index = 0; index < _x.Length - 1; index++)
+            {
+                double a = 6 * _c3[index]; //derive ax^3 and multiply by 2
+                double b = 2 * _c2[index]; //derive bx^2
+                double c = _c1[index];//derive cx
+                double d = b * b - 2 * a * c;
+                //first check if a is 0, if so its a linear function, this happens with quadratic condition
+                if (a.AlmostEqual(0))
+                {
+                    double x = _x[index] - c / b;
+                    //check if the result is in the domain
+                    if (_x[index] <= x && x <= _x[index + 1]) points.Add(x);
+                }
+                else if (d.AlmostEqual(0))//its a quadratic with a single solution
+                {
+                    double x = _x[index] - b / a;
+                    if (_x[index] <= x && x <= _x[index + 1]) points.Add(x);
+                }
+                else if (d > 0)//only has a solution if d is greater than 0
+                {
+                    d = (double)System.Math.Sqrt(d);
+                    //apply quadratic equation
+                    double x1 = _x[index] + (-b + d) / a;
+                    double x2 = _x[index] + (-b - d) / a;
+                    //Add any solution points that fall within the domain to the list
+                    if ((_x[index] <= x1) && (x1 <= _x[index + 1])) points.Add(x1);
+                    if ((_x[index] <= x2) && (x2 <= _x[index + 1])) points.Add(x2);
+                }
+            }
+            return points.ToArray();
+        }
+
+        /// <summary>
+        /// Returns the t values in the domain of the spline for which it takes the minimum and maximum value.
+        /// </summary>
+        /// <returns>A tuple containing the t value for which the spline is minimum in the first component and maximum in the second component </returns>
+        public Tuple<double, double> Extrema()
+        {
+            //Check the edges of the domain
+            //set the initial values to the leftmost domain point
+            double t = _x[0];
+            double max = Interpolate(t);
+            double min = max;
+            double minT = t;
+            double maxT = t;
+            //check the rightmost domain point
+            t = _x[_x.Length-1];
+            var ty = Interpolate(t);
+            if (ty > max)
+            {
+                max = ty;
+                maxT = t;
+            }
+            if (ty < min)
+            {
+                min = ty;
+                minT = t;
+            }
+            //check the the inflexion, local minimums and local maximums
+            double[] pointsToCheck = StationaryPoints();
+            foreach (double p in pointsToCheck)
+            {
+                double y = Interpolate(p);
+                if (y > max)
+                {
+                    max = y;
+                    maxT = p;
+                }
+                if (y < min)
+                {
+                    min = y;
+                    minT = p;
+                }
+            }
+            return new Tuple<double, double>(minT, maxT);
         }
     }
 }

@@ -1,33 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>Library</OutputType>
-        <TargetFrameworks>net40;netstandard1.1</TargetFrameworks>
-        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <TargetFrameworks>net6.0;net48</TargetFrameworks>
         <AssemblyName>MathNet.Numerics.TestData</AssemblyName>
         <RootNamespace>MathNet.Numerics.TestData</RootNamespace>
         <IsPackable>false</IsPackable>
+        <VersionPrefix>5.0.0</VersionPrefix>
+        <VersionSuffix>alpha02</VersionSuffix>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
     </PropertyGroup>
-    <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
-        <Reference Include="System" />
-        <Reference Include="System.Core" />
-        <Reference Include="System.Xml.Linq" />
-        <Reference Include="System.Data.DataSetExtensions" />
-        <Reference Include="System.Data" />
-        <Reference Include="System.Xml" />
-    </ItemGroup>
     <ItemGroup>
-		<EmbeddedResource Include="..\..\data\numpy\CorrNumpyData_pwm.csv">
-		  <Link>Data\numpy\CorrNumpyData_pwm.csv</Link>
-		</EmbeddedResource>
-		<EmbeddedResource Include="..\..\data\numpy\CorrNumpyData_sin.csv">
-		  <Link>Data\numpy\CorrNumpyData_sin.csv</Link>
-		</EmbeddedResource>
-		<EmbeddedResource Include="..\..\data\numpy\CorrNumpyData_sqr.csv">
-		  <Link>Data\numpy\CorrNumpyData_sqr.csv</Link>
-		</EmbeddedResource>
-		<EmbeddedResource Include="..\..\data\numpy\CorrNumpyData_rnd.csv">
-		  <Link>Data\numpy\CorrNumpyData_rnd.csv</Link>
-		</EmbeddedResource>
+        <EmbeddedResource Include="..\..\data\numpy\CorrNumpyData_pwm.csv">
+            <Link>Data\numpy\CorrNumpyData_pwm.csv</Link>
+        </EmbeddedResource>
+        <EmbeddedResource Include="..\..\data\numpy\CorrNumpyData_sin.csv">
+            <Link>Data\numpy\CorrNumpyData_sin.csv</Link>
+        </EmbeddedResource>
+        <EmbeddedResource Include="..\..\data\numpy\CorrNumpyData_sqr.csv">
+            <Link>Data\numpy\CorrNumpyData_sqr.csv</Link>
+        </EmbeddedResource>
+        <EmbeddedResource Include="..\..\data\numpy\CorrNumpyData_rnd.csv">
+            <Link>Data\numpy\CorrNumpyData_rnd.csv</Link>
+        </EmbeddedResource>
         <EmbeddedResource Include="..\..\data\Codeplex-5667.csv">
             <Link>Data\Codeplex-5667.csv</Link>
         </EmbeddedResource>
@@ -57,6 +52,12 @@
         </EmbeddedResource>
         <EmbeddedResource Include="..\..\data\Matlab\v.mat">
             <Link>Data\Matlab\v.mat</Link>
+        </EmbeddedResource>
+        <EmbeddedResource Include="..\..\data\Matlab\cell-array-nested.mat">
+            <Link>Data\Matlab\cell-array-nested.mat</Link>
+        </EmbeddedResource>
+        <EmbeddedResource Include="..\..\data\Matlab\struct-nested.mat">
+            <Link>Data\Matlab\struct-nested.mat</Link>
         </EmbeddedResource>
         <EmbeddedResource Include="..\..\data\NIST\AtmWtAgt.dat">
             <Link>Data\NIST\AtmWtAgt.dat</Link>
@@ -268,6 +269,17 @@
         <EmbeddedResource Include="..\..\data\MatrixMarket\random_real_general_dense_10_20.tab">
             <Link>Data\MatrixMarket\random_real_general_dense_10_20.tab</Link>
         </EmbeddedResource>
+        <EmbeddedResource Include="..\..\data\coo_torsion_duplicates.csv">
+            <Link>Data\coo_torsion_duplicates.csv</Link>
+        </EmbeddedResource>
+        <EmbeddedResource Include="..\..\data\coo_torsion_no_duplicates.csv">
+            <Link>Data\coo_torsion_no_duplicates.csv</Link>
+        </EmbeddedResource>
     </ItemGroup>
-    <Import Project="..\..\.paket\Paket.Restore.targets" />
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
 </Project>

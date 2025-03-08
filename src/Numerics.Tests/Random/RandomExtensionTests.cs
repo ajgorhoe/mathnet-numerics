@@ -29,8 +29,11 @@
 
 using MathNet.Numerics.Random;
 using NUnit.Framework;
+using System.Numerics;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace MathNet.Numerics.UnitTests.Random
+namespace MathNet.Numerics.Tests.Random
 {
     /// <summary>
     /// Tests for extension methods of the System.Random.
@@ -46,6 +49,25 @@ namespace MathNet.Numerics.UnitTests.Random
         {
             var rnd = new System.Random(0);
             rnd.NextInt64();
+        }
+
+        /// <summary>
+        /// Can sample BigInteger
+        /// </summary>
+        [Test]
+        public void CanSampleBigInteger()
+        {
+            var rnd = new System.Random(0);
+            //Main case
+            IEnumerator<BigInteger> Sequence = rnd.NextBigIntegerSequence((BigInteger)long.MinValue * 3, (BigInteger)long.MaxValue * 3).GetEnumerator();
+            Sequence.MoveNext();
+            System.Console.WriteLine(Sequence.Current);
+            Sequence.MoveNext();
+            System.Console.WriteLine(Sequence.Current);
+            Sequence.MoveNext();
+            System.Console.WriteLine(Sequence.Current);
+            //Boundary conditions
+            System.Console.WriteLine(rnd.NextBigIntegerSequence(0, 1).First());
         }
 
         /// <summary>

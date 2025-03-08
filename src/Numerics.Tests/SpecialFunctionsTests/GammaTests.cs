@@ -27,10 +27,9 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 // </copyright>
 
-using System;
 using NUnit.Framework;
 
-namespace MathNet.Numerics.UnitTests.SpecialFunctionsTests
+namespace MathNet.Numerics.Tests.SpecialFunctionsTests
 {
     /// <summary>
     /// Gamma functions tests.
@@ -38,7 +37,7 @@ namespace MathNet.Numerics.UnitTests.SpecialFunctionsTests
     [TestFixture, Category("Functions")]
     public class GammaTests
     {
-        [TestCase(Double.NaN, Double.NaN, 14)]
+        [TestCase(double.NaN, double.NaN, 14)]
         [TestCase(1.000001e-35, 9.9999900000099999900000099999899999522784235098567139293e+34, 14)]
         [TestCase(1.000001e-10, 9.99998999943278432519738283781280989934496494539074049002e+9, 14)]
         [TestCase(1.000001e-5, 99999.32279432557746387178953902739303931424932435387031653234, 14)]
@@ -52,7 +51,7 @@ namespace MathNet.Numerics.UnitTests.SpecialFunctionsTests
         [TestCase(1.0, 1.0, 15)]
         [TestCase(1.0 + 1.0e-14, 0.99999999999999422784335098477029953441189552403615306268023, 14)]
         [TestCase(1.5, 0.886226925452758013649083741670572591398774728061193564106903, 13)]
-        [TestCase(Constants.Pi/2, 0.890560890381539328010659635359121005933541962884758999762766, 14)]
+        [TestCase(Constants.PiOver2, 0.890560890381539328010659635359121005933541962884758999762766, 14)]
         [TestCase(2.0, 1.0, 16)]
         [TestCase(2.5, 1.329340388179137020473625612505858887098162092091790346160355, 14)]
         [TestCase(3.0, 2.0, 13)]
@@ -71,7 +70,7 @@ namespace MathNet.Numerics.UnitTests.SpecialFunctionsTests
             AssertHelpers.AlmostEqualRelative(expected, SpecialFunctions.Gamma(z), decimalPlaces);
         }
 
-        [TestCase(Double.NaN, Double.NaN, 14)]
+        [TestCase(double.NaN, double.NaN, 14)]
         [TestCase(1.000001e-35, 80.59047725479209894029636783061921392709972287131139201585211, 16)]
         [TestCase(1.000001e-10, 23.02584992988323521564308637407936081168344192865285883337793, 15)]
         [TestCase(1.000001e-5, 11.51291869289055371493077240324332039045238086972508869965363, 15)]
@@ -81,7 +80,7 @@ namespace MathNet.Numerics.UnitTests.SpecialFunctionsTests
         [TestCase(1.0, 0.0, 14)]
         [TestCase(1.0 + 1.0e-14, -5.77215664901524635936177848990288632404978978079827014e-15, 0)]
         [TestCase(1.5, -0.12078223763524522234551844578164721225185272790259946836386, 13)]
-        [TestCase(Constants.Pi/2, -0.11590380084550241329912089415904874214542604767006895, 13)]
+        [TestCase(Constants.PiOver2, -0.11590380084550241329912089415904874214542604767006895, 13)]
         [TestCase(2.0, 0.0, 14)]
         [TestCase(2.5, 0.284682870472919159632494669682701924320137695559894729250145, 13)]
         [TestCase(3.0, 0.693147180559945309417232121458176568075500134360255254120680, 13)]
@@ -104,7 +103,7 @@ namespace MathNet.Numerics.UnitTests.SpecialFunctionsTests
         /// <summary>
         /// Gamma lower regularized.
         /// </summary>
-        [TestCase(double.NaN, Double.NaN, Double.NaN, 14)]
+        [TestCase(double.NaN, double.NaN, double.NaN, 14)]
         [TestCase(0.1, 1.0, 0.97587265627367222115949155252812057714751052498477013, 13)]
         [TestCase(0.1, 2.0, 0.99432617602018847196075251078067514034772764693462125, 13)]
         [TestCase(0.1, 8.0, 0.99999507519205198048686442150578226823401842046310854, 13)]
@@ -141,7 +140,7 @@ namespace MathNet.Numerics.UnitTests.SpecialFunctionsTests
         /// <summary>
         /// Gamma lower regularized inverse.
         /// </summary>
-        [TestCase(double.NaN, Double.NaN, Double.NaN, 14)]
+        [TestCase(double.NaN, double.NaN, double.NaN, 14)]
         [TestCase(0.1, 1.0, 0.97587265627367222115949155252812057714751052498477013, 13)]
         [TestCase(0.1, 2.0, 0.99432617602018847196075251078067514034772764693462125, 13)]
         [TestCase(0.1, 8.0, 0.99999507519205198048686442150578226823401842046310854, 10)]
@@ -168,7 +167,7 @@ namespace MathNet.Numerics.UnitTests.SpecialFunctionsTests
         /// <summary>
         /// Gamma lower incomplete.
         /// </summary>
-        [TestCase(double.NaN, Double.NaN, Double.NaN)]
+        [TestCase(double.NaN, double.NaN, double.NaN)]
         [TestCase(0.1, 1.0, 9.2839720283798852469443229940217320532607158711056334)]
         [TestCase(0.1, 2.0, 9.4595297305559030536119885480983751098528458886962883)]
         [TestCase(0.1, 8.0, 9.5134608464704033372127589212547718314010339263844976)]
@@ -189,7 +188,7 @@ namespace MathNet.Numerics.UnitTests.SpecialFunctionsTests
         /// <summary>
         /// Gamma upper regularized.
         /// </summary>
-        [TestCase(double.NaN, Double.NaN, Double.NaN, 14)]
+        [TestCase(double.NaN, double.NaN, double.NaN, 14)]
         [TestCase(0.1, 1.0, 0.0241273437263277773829694356333550393309597428392044, 13)]
         [TestCase(0.1, 2.0, 0.0056738239798115280392474892193248596522723530653781, 13)]
         [TestCase(0.1, 8.0, 0.0000049248079480195131355784942177317659815795368919702, 13)]
@@ -226,7 +225,7 @@ namespace MathNet.Numerics.UnitTests.SpecialFunctionsTests
         /// <summary>
         /// Gamma upper incomplete.
         /// </summary>
-        [TestCase(double.NaN, Double.NaN, Double.NaN)]
+        [TestCase(double.NaN, double.NaN, double.NaN)]
         [TestCase(0.1, 1.0, 0.2295356702888460382790772147651768201739736396141314)]
         [TestCase(0.1, 2.0, 0.053977968112828232195991347726857391060870217694027)]
         [TestCase(0.1, 8.0, 0.000046852198327948595220974570460669512682180005810156)]

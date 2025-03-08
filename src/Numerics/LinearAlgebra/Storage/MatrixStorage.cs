@@ -52,12 +52,12 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
         {
             if (rowCount < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(rowCount), "The number of rows of a matrix must be positive.");
+                throw new ArgumentOutOfRangeException(nameof(rowCount), "The number of rows of a matrix must be non-negative.");
             }
 
             if (columnCount < 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(columnCount), "The number of columns of a matrix must be positive.");
+                throw new ArgumentOutOfRangeException(nameof(columnCount), "The number of columns of a matrix must be non-negative.");
             }
 
             RowCount = rowCount;
@@ -189,13 +189,8 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
             {
                 for (var i = 0; i < hashNum; i++)
                 {
-#if NETSTANDARD1_3
-                    int col = i%ColumnCount;
-                    int row = i/ColumnCount;
-#else
                     int col;
                     int row = Math.DivRem(i, ColumnCount, out col);
-#endif
                     hash = hash*31 + At(row, col).GetHashCode();
                 }
             }
@@ -352,6 +347,13 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
 
             if (rowCount == 0 || columnCount == 0)
             {
+                return;
+            }
+
+            if (sourceRowIndex == 0 && targetRowIndex == 0 && rowCount == RowCount && rowCount == target.RowCount
+                && sourceColumnIndex == 0 && targetColumnIndex == 0 && columnCount == ColumnCount && columnCount == target.ColumnCount)
+            {
+                CopyTo(target);
                 return;
             }
 
@@ -621,13 +623,13 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
             }
         }
 
-        public virtual IEnumerable<Tuple<int, int, T>> EnumerateIndexed()
+        public virtual IEnumerable<(int, int, T)> EnumerateIndexed()
         {
             for (int i = 0; i < RowCount; i++)
             {
                 for (int j = 0; j < ColumnCount; j++)
                 {
-                    yield return new Tuple<int, int, T>(i, j, At(i, j));
+                    yield return (i, j, At(i, j));
                 }
             }
         }
@@ -647,7 +649,7 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
             }
         }
 
-        public virtual IEnumerable<Tuple<int, int, T>> EnumerateNonZeroIndexed()
+        public virtual IEnumerable<(int, int, T)> EnumerateNonZeroIndexed()
         {
             for (int i = 0; i < RowCount; i++)
             {
@@ -656,7 +658,7 @@ namespace MathNet.Numerics.LinearAlgebra.Storage
                     var x = At(i, j);
                     if (!Zero.Equals(x))
                     {
-                        yield return new Tuple<int, int, T>(i, j, x);
+                        yield return (i, j, x);
                     }
                 }
             }

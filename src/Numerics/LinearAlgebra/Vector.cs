@@ -27,12 +27,13 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 // </copyright>
 
+using MathNet.Numerics.LinearAlgebra.Storage;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime;
 using System.Runtime.CompilerServices;
-using MathNet.Numerics.LinearAlgebra.Storage;
 
 namespace MathNet.Numerics.LinearAlgebra
 {
@@ -41,11 +42,8 @@ namespace MathNet.Numerics.LinearAlgebra
     /// </summary>
     /// <typeparam name="T">Supported data types are double, single, <see cref="Complex"/>, and <see cref="Complex32"/>.</typeparam>
     [Serializable]
-    public abstract partial class Vector<T> :
-        IFormattable, IEquatable<Vector<T>>, IList, IList<T>
-#if !NETSTANDARD1_3
-        , ICloneable
-#endif
+    [DebuggerTypeProxy(typeof(VectorDebuggingView<>))]
+    public abstract partial class Vector<T> : IFormattable, IEquatable<Vector<T>>, IList, IList<T>, ICloneable
         where T : struct, IEquatable<T>, IFormattable
     {
         /// <summary>
@@ -76,15 +74,11 @@ namespace MathNet.Numerics.LinearAlgebra
         /// greater than the size of the vector.</exception>
         public T this[int index]
         {
-#if !NET40
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
             [TargetedPatchingOptOut("Performance critical to inline across NGen image boundaries")]
             get { return Storage[index]; }
 
-#if !NET40
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
             [TargetedPatchingOptOut("Performance critical to inline across NGen image boundaries")]
             set { Storage[index] = value; }
         }
@@ -92,9 +86,7 @@ namespace MathNet.Numerics.LinearAlgebra
         /// <summary>Gets the value at the given <paramref name="index"/> without range checking..</summary>
         /// <param name="index">The index of the value to get or set.</param>
         /// <returns>The value of the vector at the given <paramref name="index"/>.</returns>
-#if !NET40
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
         [TargetedPatchingOptOut("Performance critical to inline across NGen image boundaries")]
         public T At(int index)
         {
@@ -104,9 +96,7 @@ namespace MathNet.Numerics.LinearAlgebra
         /// <summary>Sets the <paramref name="value"/> at the given <paramref name="index"/> without range checking..</summary>
         /// <param name="index">The index of the value to get or set.</param>
         /// <param name="value">The value to set.</param>
-#if !NET40
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
         [TargetedPatchingOptOut("Performance critical to inline across NGen image boundaries")]
         public void At(int index, T value)
         {
@@ -308,7 +298,7 @@ namespace MathNet.Numerics.LinearAlgebra
         /// <remarks>
         /// The enumerator will include all values, even if they are zero.
         /// </remarks>
-        public IEnumerable<T> Enumerate(Zeros zeros = Zeros.Include)
+        public IEnumerable<T> Enumerate(Zeros zeros)
         {
             switch (zeros)
             {
@@ -327,7 +317,7 @@ namespace MathNet.Numerics.LinearAlgebra
         /// and the second value being the value of the element at that index.
         /// The enumerator will include all values, even if they are zero.
         /// </remarks>
-        public IEnumerable<Tuple<int, T>> EnumerateIndexed()
+        public IEnumerable<(int, T)> EnumerateIndexed()
         {
             return Storage.EnumerateIndexed();
         }
@@ -340,7 +330,7 @@ namespace MathNet.Numerics.LinearAlgebra
         /// and the second value being the value of the element at that index.
         /// The enumerator will include all values, even if they are zero.
         /// </remarks>
-        public IEnumerable<Tuple<int, T>> EnumerateIndexed(Zeros zeros = Zeros.Include)
+        public IEnumerable<(int, T)> EnumerateIndexed(Zeros zeros)
         {
             switch (zeros)
             {
@@ -540,5 +530,19 @@ namespace MathNet.Numerics.LinearAlgebra
         {
             return Storage.Find2(other.Storage, (x, y) => !predicate(x, y), zeros) == null;
         }
+    }
+
+    internal class VectorDebuggingView<T>
+        where T : struct, IEquatable<T>, IFormattable
+    {
+        private readonly Vector<T> _vector;
+
+        public VectorDebuggingView(Vector<T> vector)
+        {
+            _vector = vector;
+        }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public T[] Items => _vector.ToArray();
     }
 }

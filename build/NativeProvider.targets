@@ -5,10 +5,11 @@
   ******************************************************************************
   -->
   <ItemGroup Condition="'$(MSBuildThisFileDirectory)' != '' And HasTrailingSlash('$(MSBuildThisFileDirectory)')">
-    <MathNetInteropFiles Include="$(MSBuildThisFileDirectory)**\*.dll" />
-    <MathNetInteropFiles Include="$(MSBuildThisFileDirectory)**\*.so" />
-    <None Include="@(MathNetInteropFiles)">
-      <Link>%(RecursiveDir)%(FileName)%(Extension)</Link>
+    <MathNetInteropFiles Include="$(MSBuildThisFileDirectory)..\..\runtimes\**\*.dll" />
+    <MathNetInteropFiles Include="$(MSBuildThisFileDirectory)..\..\runtimes\**\*.so" />
+    <MathNetInteropFiles Include="$(MSBuildThisFileDirectory)..\..\runtimes\**\*.dylib" />
+    <None Include="@(MathNetInteropFiles)" Visible="false">
+      <Link>runtimes/%(RecursiveDir)%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

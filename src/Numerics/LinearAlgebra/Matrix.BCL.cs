@@ -76,8 +76,6 @@ namespace MathNet.Numerics.LinearAlgebra
             return Storage.GetHashCode();
         }
 
-#if !NETSTANDARD1_3
-
         /// <summary>
         /// Creates a new object that is a copy of the current instance.
         /// </summary>
@@ -88,8 +86,6 @@ namespace MathNet.Numerics.LinearAlgebra
         {
             return Clone();
         }
-
-#endif
 
         /// <summary>
         /// Returns a string that describes the type, dimensions and shape of this matrix.
@@ -231,9 +227,10 @@ namespace MathNet.Numerics.LinearAlgebra
             int colIndex = 0;
             foreach (var column in columnsLeft)
             {
+                var columnItem2 = column.Item2;
                 for (int i = 0; i < column.Item2.Length; i++)
                 {
-                    array[i, colIndex] = column.Item2[i];
+                    array[i, colIndex] = columnItem2[i];
                 }
                 colIndex++;
             }
@@ -256,9 +253,10 @@ namespace MathNet.Numerics.LinearAlgebra
             }
             foreach (var column in columnsRight)
             {
+                var columnItem2 = column.Item2;
                 for (int i = 0; i < column.Item2.Length; i++)
                 {
-                    array[i, colIndex] = column.Item2[i];
+                    array[i, colIndex] = columnItem2[i];
                 }
                 colIndex++;
             }
@@ -281,7 +279,10 @@ namespace MathNet.Numerics.LinearAlgebra
             {
                 c[index++] = formatValue(At(row, column));
             }
-            int w = c.Max(x => x.Length);
+
+            int w = height != 0
+                ? c.Max(x => x.Length)
+                : 0;
             if (withEllipsis)
             {
                 c[upper] = ellipsis;
@@ -291,6 +292,7 @@ namespace MathNet.Numerics.LinearAlgebra
 
         static string FormatStringArrayToString(string[,] array, string columnSeparator, string rowSeparator)
         {
+            const string emptyString = "[empty]";
             var rows = array.GetLength(0);
             var cols = array.GetLength(1);
 
@@ -304,16 +306,46 @@ namespace MathNet.Numerics.LinearAlgebra
             }
 
             var sb = new StringBuilder();
-            for (int i = 0; i < rows; i++)
+            if (rows > 0)
             {
-                sb.Append(array[i, 0].PadLeft(widths[0]));
-                for (int j = 1; j < cols; j++)
+                for (int i = 0; i < rows; i++)
                 {
-                    sb.Append(columnSeparator);
-                    sb.Append(array[i, j].PadLeft(widths[j]));
+                    if (cols > 0)
+                    {
+                        sb.Append(array[i, 0].PadLeft(widths[0]));
+                        for (int j = 1; j < cols; j++)
+                        {
+                            sb.Append(columnSeparator);
+                            sb.Append(array[i, j].PadLeft(widths[j]));
+                        }
+                    }
+                    else
+                    {
+                        sb.Append(emptyString);
+                    }
+
+                    sb.Append(rowSeparator);
                 }
-                sb.Append(rowSeparator);
             }
+            else
+            {
+                if (cols > 0)
+                {
+                    for (int j = 0; j < cols; j++)
+                    {
+                        sb.Append(emptyString);
+                        if (j != cols - 1)
+                        {
+                            sb.Append(columnSeparator);
+                        }
+                    }
+                }
+                else
+                {
+                    sb.Append(emptyString);
+                }
+            }
+
             return sb.ToString();
         }
 
@@ -321,18 +353,42 @@ namespace MathNet.Numerics.LinearAlgebra
             string horizontalEllipsis, string verticalEllipsis, string diagonalEllipsis,
             string columnSeparator, string rowSeparator, Func<T, string> formatValue)
         {
+            var array = ToMatrixStringArray(
+                upperRows,
+                lowerRows,
+                leftColumns,
+                rightColumns,
+                horizontalEllipsis,
+                verticalEllipsis,
+                diagonalEllipsis,
+                formatValue);
+
             return FormatStringArrayToString(
-                ToMatrixStringArray(upperRows, lowerRows, leftColumns, rightColumns, horizontalEllipsis, verticalEllipsis, diagonalEllipsis, formatValue),
-                columnSeparator, rowSeparator);
+                array,
+                columnSeparator,
+                rowSeparator);
         }
 
         public string ToMatrixString(int upperRows, int lowerRows, int minLeftColumns, int rightColumns, int maxWidth,
             string horizontalEllipsis, string verticalEllipsis, string diagonalEllipsis,
             string columnSeparator, string rowSeparator, Func<T, string> formatValue)
         {
+            var array = ToMatrixStringArray(
+                upperRows,
+                lowerRows,
+                minLeftColumns,
+                rightColumns,
+                maxWidth,
+                columnSeparator.Length,
+                horizontalEllipsis,
+                verticalEllipsis,
+                diagonalEllipsis,
+                formatValue);
+
             return FormatStringArrayToString(
-                ToMatrixStringArray(upperRows, lowerRows, minLeftColumns, rightColumns, maxWidth, columnSeparator.Length, horizontalEllipsis, verticalEllipsis, diagonalEllipsis, formatValue),
-                columnSeparator, rowSeparator);
+                array,
+                columnSeparator,
+                rowSeparator);
         }
 
         /// <summary>

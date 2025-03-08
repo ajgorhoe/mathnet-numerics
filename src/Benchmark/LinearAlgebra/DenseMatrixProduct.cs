@@ -5,7 +5,7 @@ using BenchmarkDotNet.Environments;
 using BenchmarkDotNet.Jobs;
 using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.Providers.Common.Mkl;
+using MathNet.Numerics.Providers.MKL;
 
 namespace Benchmark.LinearAlgebra
 {
@@ -18,8 +18,8 @@ namespace Benchmark.LinearAlgebra
             {
                 AddJob(Job.Default.WithRuntime(ClrRuntime.Net461).WithPlatform(Platform.X64).WithJit(Jit.RyuJit));
                 AddJob(Job.Default.WithRuntime(ClrRuntime.Net461).WithPlatform(Platform.X86).WithJit(Jit.LegacyJit));
-#if !NET461
-                AddJob(Job.Default.WithRuntime(CoreRuntime.Core31).WithPlatform(Platform.X64).WithJit(Jit.RyuJit));
+#if NET5_0_OR_GREATER
+                AddJob(Job.Default.WithRuntime(CoreRuntime.Core50).WithPlatform(Platform.X64).WithJit(Jit.RyuJit));
 #endif
             }
         }
@@ -77,16 +77,16 @@ namespace Benchmark.LinearAlgebra
                     Control.UseManaged();
                     break;
                 case ProviderId.NativeMKLAutoHigh:
-                    Control.UseNativeMKL(MklConsistency.Auto, MklPrecision.Double, MklAccuracy.High);
+                    MklControl.UseNativeMKL(MklConsistency.Auto, MklPrecision.Double, MklAccuracy.High);
                     break;
                 case ProviderId.NativeMKLAutoLow:
-                    Control.UseNativeMKL(MklConsistency.Auto, MklPrecision.Double, MklAccuracy.Low);
+                    MklControl.UseNativeMKL(MklConsistency.Auto, MklPrecision.Double, MklAccuracy.Low);
                     break;
                 case ProviderId.NativeMKLAvx2High:
-                    Control.UseNativeMKL(MklConsistency.AVX2, MklPrecision.Double, MklAccuracy.High);
+                    MklControl.UseNativeMKL(MklConsistency.AVX2, MklPrecision.Double, MklAccuracy.High);
                     break;
                 case ProviderId.NativeMKLAvx2Low:
-                    Control.UseNativeMKL(MklConsistency.AVX2, MklPrecision.Double, MklAccuracy.Low);
+                    MklControl.UseNativeMKL(MklConsistency.AVX2, MklPrecision.Double, MklAccuracy.Low);
                     break;
             }
         }

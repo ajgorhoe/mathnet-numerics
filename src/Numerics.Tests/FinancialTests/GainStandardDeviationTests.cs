@@ -34,7 +34,7 @@ using MathNet.Numerics.Financial;
 using MathNet.Numerics.Statistics;
 using NUnit.Framework;
 
-namespace MathNet.Numerics.UnitTests.FinancialTests
+namespace MathNet.Numerics.Tests.FinancialTests
 {
     [TestFixture, Category("Financial")]
     public class GainStandardDeviationTests
@@ -113,9 +113,8 @@ namespace MathNet.Numerics.UnitTests.FinancialTests
             //arrange
             List<double> inputData = null;
             //act
-// ReSharper disable ExpressionIsAlwaysNull
+// ReSharper disable once ExpressionIsAlwaysNull
             Assert.Throws<ArgumentNullException>(() => AbsoluteRiskMeasures.GainStandardDeviation(inputData));
-// ReSharper restore ExpressionIsAlwaysNull
         }
     }
 }

@@ -3,7 +3,7 @@
 // http://numerics.mathdotnet.com
 // http://github.com/mathnet/mathnet-numerics
 //
-// Copyright (c) 2009-2018 Math.NET
+// Copyright (c) 2009-2021 Math.NET
 //
 // Permission is hereby granted, free of charge, to any person
 // obtaining a copy of this software and associated documentation
@@ -28,14 +28,16 @@
 // </copyright>
 
 using System;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using MathNet.Numerics.Providers.SparseSolver;
 using MathNet.Numerics.Providers.FourierTransform;
 using MathNet.Numerics.Providers.LinearAlgebra;
+
+#if !NET461
+using System.Runtime.InteropServices;
+#endif
 
 namespace MathNet.Numerics
 {
@@ -74,13 +76,6 @@ namespace MathNet.Numerics
             SparseSolverControl.UseManaged();
         }
 
-        public static void UseManagedReference()
-        {
-            LinearAlgebraControl.UseManagedReference();
-            FourierTransformControl.UseManaged();
-            SparseSolverControl.UseManaged();
-        }
-
         /// <summary>
         /// Use a specific provider if configured, e.g. using
         /// environment variables, or fall back to the best providers.
@@ -114,8 +109,6 @@ namespace MathNet.Numerics
             SparseSolverControl.UseBest();
         }
 
-#if NATIVE
-
         /// <summary>
         /// Use the Intel MKL native provider for linear algebra.
         /// Throws if it is not available or failed to initialize, in which case the previous provider is still active.
@@ -127,20 +120,6 @@ namespace MathNet.Numerics
             SparseSolverControl.UseNativeMKL();
         }
 
-        /// <summary>
-        /// Use the Intel MKL native provider for linear algebra, with the specified configuration parameters.
-        /// Throws if it is not available or failed to initialize, in which case the previous provider is still active.
-        /// </summary>
-        [CLSCompliant(false)]
-        public static void UseNativeMKL(
-            Providers.Common.Mkl.MklConsistency consistency = Providers.Common.Mkl.MklConsistency.Auto,
-            Providers.Common.Mkl.MklPrecision precision = Providers.Common.Mkl.MklPrecision.Double,
-            Providers.Common.Mkl.MklAccuracy accuracy = Providers.Common.Mkl.MklAccuracy.High)
-        {
-            LinearAlgebraControl.UseNativeMKL(consistency, precision, accuracy);
-            FourierTransformControl.UseNativeMKL();
-            SparseSolverControl.UseNativeMKL();
-        }
 
         /// <summary>
         /// Try to use the Intel MKL native provider for linear algebra.
@@ -220,7 +199,6 @@ namespace MathNet.Numerics
             bool directSparseSolver = SparseSolverControl.TryUseNative();
             return linearAlgebra || fourierTransform || directSparseSolver;
         }
-#endif
 
         public static void FreeResources()
         {
@@ -328,30 +306,23 @@ namespace MathNet.Numerics
 
         public static string Describe()
         {
-#if NET40
-            var versionAttribute = typeof(Control).Assembly
-                .GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)
-                .OfType<AssemblyInformationalVersionAttribute>()
-                .FirstOrDefault();
-#else
             var versionAttribute = typeof(Control).GetTypeInfo().Assembly.GetCustomAttribute(typeof(AssemblyInformationalVersionAttribute)) as AssemblyInformationalVersionAttribute;
-#endif
 
             var sb = new StringBuilder();
             sb.AppendLine("Math.NET Numerics Configuration:");
             sb.AppendLine($"Version {versionAttribute?.InformationalVersion}");
-#if NETSTANDARD1_3
-            sb.AppendLine("Built for .Net Standard 1.3");
+#if NET5_0
+            sb.AppendLine("Built for .NET 5.0");
+#elif NET5_0_OR_GREATER
+            sb.AppendLine("Built for .NET 5.0+");
 #elif NETSTANDARD2_0
-            sb.AppendLine("Built for .Net Standard 2.0");
-#elif NET40
-            sb.AppendLine("Built for .Net Framework 4.0");
+            sb.AppendLine("Built for .NET Standard 2.0");
+#elif NET48
+            sb.AppendLine("Built for .NET Framework 4.8");
 #elif NET461
-            sb.AppendLine("Built for .Net Framework 4.6.1");
+            sb.AppendLine("Built for .NET Framework 4.6.1");
 #endif
-#if !NATIVE
-            sb.AppendLine("No Native Provider Support");
-#endif
+
             sb.AppendLine($"Linear Algebra Provider: {LinearAlgebraControl.Provider}");
             sb.AppendLine($"Fourier Transform Provider: {FourierTransformControl.Provider}");
             sb.AppendLine($"Sparse Solver Provider: {SparseSolverControl.Provider}");
@@ -360,16 +331,27 @@ namespace MathNet.Numerics
             sb.AppendLine($"Parallelize Order: {ParallelizeOrder}");
             sb.AppendLine($"Check Distribution Parameters: {CheckDistributionParameters}");
             sb.AppendLine($"Thread-Safe RNGs: {ThreadSafeRandomNumberGenerators}");
-#if NETSTANDARD1_3 || NETSTANDARD2_0
-            // This would also work in .Net 4.0, but we don't want the dependency just for that.
+#if NET461
+            sb.AppendLine($"Operating System: {Environment.OSVersion}");
+            sb.AppendLine($"Framework: {Environment.Version}");
+#else
+            // This would also work in .NET 4.0, but we don't want the dependency just for that.
             sb.AppendLine($"Operating System: {RuntimeInformation.OSDescription}");
             sb.AppendLine($"Operating System Architecture: {RuntimeInformation.OSArchitecture}");
             sb.AppendLine($"Framework: {RuntimeInformation.FrameworkDescription}");
             sb.AppendLine($"Process Architecture: {RuntimeInformation.ProcessArchitecture}");
-#else
-            sb.AppendLine($"Operating System: {Environment.OSVersion}");
-            sb.AppendLine($"Framework: {Environment.Version}");
 #endif
+            var processorArchitecture = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE");
+            if (!string.IsNullOrEmpty(processorArchitecture))
+            {
+                sb.AppendLine($"Processor Architecture: {processorArchitecture}");
+            }
+            var processorId = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER");
+            if (!string.IsNullOrEmpty(processorId))
+            {
+                sb.AppendLine($"Processor Identifier: {processorId}");
+            }
+
             return sb.ToString();
         }
     }

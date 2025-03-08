@@ -27,13 +27,13 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 // </copyright>
 
-using System;
-using System.Linq;
 using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.LinearAlgebra.Storage;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace MathNet.Numerics.UnitTests.LinearAlgebraTests
+namespace MathNet.Numerics.Tests.LinearAlgebraTests
 {
     [TestFixture, Category("LA")]
     public abstract partial class MatrixStructureTheory<T>
@@ -611,42 +611,67 @@ namespace MathNet.Numerics.UnitTests.LinearAlgebraTests
                 }
             }
 
-            var matrix = Matrix<T>.Build.SparseFromCoordinateFormat(rowCount, columnCount, valueCount, cooRowIndices, cooColumnIndices, cooValues);
-            Assert.That(matrix.GetType().Name, Is.EqualTo("SparseMatrix"));
-            Assert.That(matrix.RowCount, Is.EqualTo(3));
-            Assert.That(matrix.ColumnCount, Is.EqualTo(4));
+            var A = Matrix<T>.Build.SparseFromCoordinateFormat(rowCount, columnCount, valueCount, cooRowIndices, cooColumnIndices, cooValues);
+            Assert.That(A.GetType().Name, Is.EqualTo("SparseMatrix"));
+            Assert.That(A.RowCount, Is.EqualTo(3));
+            Assert.That(A.ColumnCount, Is.EqualTo(4));
+
+            Array.Reverse(cooRowIndices);
+            Array.Reverse(cooColumnIndices);
+            Array.Reverse(cooValues);
+
+            var B = Matrix<T>.Build.SparseFromCoordinateFormat(rowCount, columnCount, valueCount, cooRowIndices, cooColumnIndices, cooValues);
+
             for (int j = 0; j < 4; j++)
+            {
                 for (int i = 0; i < 3; i++)
-                    Assert.That(matrix[i, j], Is.EqualTo(rows[i][j]));
+                {
+                    Assert.That(A[i, j], Is.EqualTo(rows[i][j]));
+                    Assert.That(B[i, j], Is.EqualTo(rows[i][j]));
+                }
+            }
+        }
+
+        [Test]
+        public void CanCreateSparseFromNonOrderedDuplicatedCoordinateFormat()
+        {
+            int rowCount = 2, columnCount = 2, valueCount = 5;
+            var cooRowIndices = new[] { 1, 0, 1, 0, 1 };
+            var cooColumnIndices = new[] { 1, 0, 0, 1, 1 };
+            var cooValues = Vector<T>.Build.Random(5, 0).ToArray();
+
+            var A = Matrix<T>.Build.SparseFromCoordinateFormat(rowCount, columnCount, valueCount, cooRowIndices, cooColumnIndices, cooValues);
+
+            Array.Reverse(cooRowIndices);
+            Array.Reverse(cooColumnIndices);
+            Array.Reverse(cooValues);
+
+            var B = Matrix<T>.Build.SparseFromCoordinateFormat(rowCount, columnCount, valueCount, cooRowIndices, cooColumnIndices, cooValues);
+
+            Assert.That(A.Equals(B));
         }
 
         [Test]
         public void CanCreateSparseFromCompressedSparseRowFormat()
         {
-            var rows = new[]
-            {
-                Vector<T>.Build.Random(4, 0),
-                Vector<T>.Build.Random(4, 1),
-                Vector<T>.Build.Random(4, 3)
-            };
+            var dense = Matrix<T>.Build.Random(4, 3, seed: 0);
+            dense.At(0, 2, Matrix<T>.Zero);
+            dense.At(2, 1, Matrix<T>.Zero);
 
-            var rowCount = rows.Length;
-            var columnCount = 4;
-            var valueCount = rowCount * columnCount;
+            var rowCount = dense.RowCount;
+            var columnCount = dense.ColumnCount;
 
             var csrRowPointers = new int[rowCount + 1];
-            var csrColumnIndices = new int[valueCount];
-            var csrValues = new T[valueCount];
+            var csrColumnIndicesList = new List<int>(rowCount * columnCount);
+            var csrValuesList = new List<T>(rowCount * columnCount);
 
-            int loc = 0;
             for (int i = 0; i < rowCount; i++)
             {
                 for (int j = 0; j < columnCount; j++)
                 {
                     csrRowPointers[i + 1]++;
-                    csrColumnIndices[loc] = j;
-                    csrValues[loc] = rows[i].At(j);
-                    loc++;
+                    csrColumnIndicesList.Add(j);
+                    csrValuesList.Add(dense.At(i, j));
                 }
             }
             for (int i = 1; i < rowCount + 1; i++)
@@ -654,42 +679,38 @@ namespace MathNet.Numerics.UnitTests.LinearAlgebraTests
                 csrRowPointers[i] += csrRowPointers[i - 1];
             }
 
-            var matrix = Matrix<T>.Build.SparseFromCompressedSparseRowFormat(rowCount, columnCount, valueCount, csrRowPointers, csrColumnIndices, csrValues);
-            Assert.That(matrix.GetType().Name, Is.EqualTo("SparseMatrix"));
-            Assert.That(matrix.RowCount, Is.EqualTo(3));
-            Assert.That(matrix.ColumnCount, Is.EqualTo(4));
-            for (int j = 0; j < 4; j++)
-                for (int i = 0; i < 3; i++)
-                    Assert.That(matrix[i, j], Is.EqualTo(rows[i][j]));
+            var csrColumnIndices = csrColumnIndicesList.ToArray();
+            var csrValues = csrValuesList.ToArray();
+
+            var A = Matrix<T>.Build.SparseFromCompressedSparseRowFormat(rowCount, columnCount, csrValues.Length, csrRowPointers, csrColumnIndices, csrValues);
+            Assert.That(A.GetType().Name, Is.EqualTo("SparseMatrix"));
+            Assert.That(A.Equals(dense), "A = dense");
         }
 
         [Test]
         public void CanCreateSparseFromCompressedSparseColumnFormat()
         {
-            var rows = new[]
-            {
-                Vector<T>.Build.Random(4, 0),
-                Vector<T>.Build.Random(4, 1),
-                Vector<T>.Build.Random(4, 3)
-            };
+            var dense = Matrix<T>.Build.Random(4, 3, seed: 0);
+            dense.At(0, 2, Matrix<T>.Zero);
+            dense.At(2, 1, Matrix<T>.Zero);
 
-            var rowCount = rows.Length;
-            var columnCount = 4;
-            var valueCount = rowCount * columnCount;
+            var rowCount = dense.RowCount;
+            var columnCount = dense.ColumnCount;
 
-            var cscRowIndices = new int[valueCount];
             var cscColumnPointers = new int[columnCount + 1];
-            var cscValues = new T[valueCount];
+            var cscRowIndicesList = new List<int>(rowCount * columnCount);
+            var cscValuesList = new List<T>(rowCount * columnCount);
 
-            int loc = 0;
             for (int j = 0; j < columnCount; j++)
             {
                 for (int i = 0; i < rowCount; i++)
                 {
-                    cscColumnPointers[j + 1]++;
-                    cscRowIndices[loc] = i;
-                    cscValues[loc] = rows[i].At(j);
-                    loc++;
+                    if (!Matrix<T>.Zero.Equals(dense.At(i, j)))
+                    {
+                        cscColumnPointers[j + 1]++;
+                        cscRowIndicesList.Add(i);
+                        cscValuesList.Add(dense.At(i, j));
+                    }
                 }
             }
             for (int i = 1; i < columnCount + 1; i++)
@@ -697,13 +718,12 @@ namespace MathNet.Numerics.UnitTests.LinearAlgebraTests
                 cscColumnPointers[i] += cscColumnPointers[i - 1];
             }
 
-            var matrix = Matrix<T>.Build.SparseFromCompressedSparseColumnFormat(rowCount, columnCount, valueCount, cscRowIndices, cscColumnPointers, cscValues);
-            Assert.That(matrix.GetType().Name, Is.EqualTo("SparseMatrix"));
-            Assert.That(matrix.RowCount, Is.EqualTo(3));
-            Assert.That(matrix.ColumnCount, Is.EqualTo(4));
-            for (int j = 0; j < 4; j++)
-                for (int i = 0; i < 3; i++)
-                    Assert.That(matrix[i, j], Is.EqualTo(rows[i][j]));
+            var cscRowIndices = cscRowIndicesList.ToArray();
+            var cscValues = cscValuesList.ToArray();
+
+            var A = Matrix<T>.Build.SparseFromCompressedSparseColumnFormat(rowCount, columnCount, cscValues.Length, cscRowIndices, cscColumnPointers, cscValues);
+            Assert.That(A.GetType().Name, Is.EqualTo("SparseMatrix"));
+            Assert.That(A.Equals(dense), "A = dense");
         }
 
         [Test]

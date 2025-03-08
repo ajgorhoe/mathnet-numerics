@@ -122,13 +122,12 @@ namespace MathNet.Numerics.Optimization
             int numDimensions = simplexConstants.Length;
             int numVertices = numDimensions + 1;
             Vector<double>[] vertices = InitializeVertices(simplexConstants);
-            double[] errorValues = new double[numVertices];
 
             int evaluationCount = 0;
-            ExitCondition exitCondition = ExitCondition.None;
+            ExitCondition exitCondition;
             ErrorProfile errorProfile;
 
-            errorValues = InitializeErrorValues(vertices, objectiveFunction);
+            double[] errorValues = InitializeErrorValues(vertices, objectiveFunction);
             int numTimesHasConverged = 0;
 
             // iterate until we converge, or complete our permitted number of iterations
@@ -158,7 +157,7 @@ namespace MathNet.Numerics.Optimization
                 if (reflectionPointValue <= errorValues[errorProfile.LowestIndex])
                 {
                     // it's better than the best point, so attempt an expansion of the simplex
-                    double expansionPointValue = TryToScaleSimplex(2.0, ref errorProfile, vertices, errorValues, objectiveFunction);
+                    TryToScaleSimplex(2.0, ref errorProfile, vertices, errorValues, objectiveFunction);
                     ++evaluationCount;
                 }
                 else if (reflectionPointValue >= errorValues[errorProfile.NextHighestIndex])
@@ -219,14 +218,7 @@ namespace MathNet.Numerics.Optimization
             double range = 2 * Math.Abs(errorValues[errorProfile.HighestIndex] - errorValues[errorProfile.LowestIndex]) /
                 (Math.Abs(errorValues[errorProfile.HighestIndex]) + Math.Abs(errorValues[errorProfile.LowestIndex]) + JITTER);
 
-            if (range < convergenceTolerance)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return range < convergenceTolerance;
         }
 
         /// <summary>
@@ -380,7 +372,7 @@ namespace MathNet.Numerics.Optimization
 
         sealed class SimplexConstant
         {
-            public SimplexConstant(double value, double initialPerturbation)
+            SimplexConstant(double value, double initialPerturbation)
             {
                 Value = value;
                 InitialPerturbation = initialPerturbation;

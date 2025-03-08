@@ -1,12 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28729.10
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Readme", "Readme", "{C2F37492-38AE-4186-8A7F-17B0B080942C}"
 	ProjectSection(SolutionItems) = preProject
 		CONTRIBUTING.md = CONTRIBUTING.md
 		CONTRIBUTORS.md = CONTRIBUTORS.md
+		LICENSE-MKL.md = LICENSE-MKL.md
 		LICENSE.md = LICENSE.md
 		README.md = README.md
 		RELEASENOTES-CUDA.md = RELEASENOTES-CUDA.md
@@ -26,49 +27,47 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Numerics.Tests", "src\Numer
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{B54A0B40-DE22-49FB-B1C0-6E5BDA3B0B2F}"
 	ProjectSection(SolutionItems) = preProject
-		.travis.yml = .travis.yml
+		.editorconfig = .editorconfig
 		appveyor.yml = appveyor.yml
-		docs\tools\build-docs.fsx = docs\tools\build-docs.fsx
-		build\build-framework.fsx = build\build-framework.fsx
-		build.fsx = build.fsx
-		src\Directory.Build.props = src\Directory.Build.props
+		Directory.Build.props = Directory.Build.props
 		global.json = global.json
+		build\MathNet.Numerics.nuspec = build\MathNet.Numerics.nuspec
+		build\MathNet.Numerics.FSharp.nuspec = build\MathNet.Numerics.FSharp.nuspec
+		build\MathNet.Numerics.CUDA.Win.nuspec = build\MathNet.Numerics.CUDA.Win.nuspec
+		build\MathNet.Numerics.MKL.Linux-x64.nuspec = build\MathNet.Numerics.MKL.Linux-x64.nuspec
+		build\MathNet.Numerics.MKL.Linux-x86.nuspec = build\MathNet.Numerics.MKL.Linux-x86.nuspec
+		build\MathNet.Numerics.MKL.Linux.nuspec = build\MathNet.Numerics.MKL.Linux.nuspec
+		build\MathNet.Numerics.MKL.Win-x64.nuspec = build\MathNet.Numerics.MKL.Win-x64.nuspec
+		build\MathNet.Numerics.MKL.Win-x86.nuspec = build\MathNet.Numerics.MKL.Win-x86.nuspec
+		build\MathNet.Numerics.MKL.Win.nuspec = build\MathNet.Numerics.MKL.Win.nuspec
+		build\MathNet.Numerics.OpenBLAS.Win.nuspec = build\MathNet.Numerics.OpenBLAS.Win.nuspec
+		build\NativeProvider.targets = build\NativeProvider.targets
 		paket.dependencies = paket.dependencies
 		paket.lock = paket.lock
+		build.cmd = build.cmd
+		build.sh = build.sh
+		.gitignore = .gitignore
+		.gitattributes = .gitattributes
+		NuGet.config = NuGet.config
+		restore.cmd = restore.cmd
+		restore.sh = restore.sh
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestData", "src\TestData\TestData.csproj", "{AF3253C9-4DB5-45A0-98CF-C105FDA9DA47}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmark", "src\Benchmark\Benchmark.csproj", "{82444930-9FD7-41B6-B476-CCE41A0C0A0B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{B890C1AF-E488-490F-B784-2C6F8C924693}"
-ProjectSection(SolutionItems) = preProject
-	docs\content\Build.md = docs\content\Build.md
-	docs\content\Compatibility.md = docs\content\Compatibility.md
-	docs\content\Constants.md = docs\content\Constants.md
-	docs\content\CSV.md = docs\content\CSV.md
-	docs\content\DescriptiveStatistics.md = docs\content\DescriptiveStatistics.md
-	docs\content\Distance.md = docs\content\Distance.md
-	docs\content\Euclid.md = docs\content\Euclid.md
-	docs\content\Functions.md = docs\content\Functions.md
-	docs\content\Generate.md = docs\content\Generate.md
-	docs\content\IFsharpNotebook.md = docs\content\IFsharpNotebook.md
-	docs\content\index.md = docs\content\index.md
-	docs\content\IntegralTransforms.md = docs\content\IntegralTransforms.md
-	docs\content\Integration.md = docs\content\Integration.md
-	docs\content\Interpolation.md = docs\content\Interpolation.md
-	docs\content\LinearEquations.md = docs\content\LinearEquations.md
-	docs\content\MatlabFiles.md = docs\content\MatlabFiles.md
-	docs\content\Matrix.md = docs\content\Matrix.md
-	docs\content\MatrixMarket.md = docs\content\MatrixMarket.md
-	docs\content\MKL.md = docs\content\MKL.md
-	docs\content\Packages.md = docs\content\Packages.md
-	docs\content\Probability.md = docs\content\Probability.md
-	docs\content\Random.md = docs\content\Random.md
-	docs\content\Regression.md = docs\content\Regression.md
-	docs\content\Users.md = docs\content\Users.md
-	README.md = README.md
-EndProjectSection
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Providers.MKL", "src\Providers.MKL\Providers.MKL.csproj", "{0B5FAFAA-4286-4D92-B5AB-CBA75ADDA0BB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Providers.CUDA", "src\Providers.CUDA\Providers.CUDA.csproj", "{3C0D4A87-CC89-43B6-B028-4122099D692F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Providers.OpenBLAS", "src\Providers.OpenBLAS\Providers.OpenBLAS.csproj", "{FBE18DF3-EEC3-4812-9FB4-B9EA6EAEC029}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data.Matlab", "src\Data.Matlab\Data.Matlab.csproj", "{2AA6CF31-96A1-4BB5-AD2E-7840167FE4DA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data.Text", "src\Data.Text\Data.Text.csproj", "{B626F8B8-51A5-4FB6-BE5A-E94B27B1A050}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Data.Tests", "src\Data.Tests\Data.Tests.csproj", "{1FBB8988-3F40-4FCE-BEA8-2C705888804A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -113,6 +112,42 @@ Global
 		{82444930-9FD7-41B6-B476-CCE41A0C0A0B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{82444930-9FD7-41B6-B476-CCE41A0C0A0B}.Release-Signed|Any CPU.ActiveCfg = Release|Any CPU
 		{82444930-9FD7-41B6-B476-CCE41A0C0A0B}.Release-Signed|Any CPU.Build.0 = Release|Any CPU
+		{0B5FAFAA-4286-4D92-B5AB-CBA75ADDA0BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B5FAFAA-4286-4D92-B5AB-CBA75ADDA0BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B5FAFAA-4286-4D92-B5AB-CBA75ADDA0BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B5FAFAA-4286-4D92-B5AB-CBA75ADDA0BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B5FAFAA-4286-4D92-B5AB-CBA75ADDA0BB}.Release-Signed|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B5FAFAA-4286-4D92-B5AB-CBA75ADDA0BB}.Release-Signed|Any CPU.Build.0 = Debug|Any CPU
+		{3C0D4A87-CC89-43B6-B028-4122099D692F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C0D4A87-CC89-43B6-B028-4122099D692F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C0D4A87-CC89-43B6-B028-4122099D692F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C0D4A87-CC89-43B6-B028-4122099D692F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C0D4A87-CC89-43B6-B028-4122099D692F}.Release-Signed|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C0D4A87-CC89-43B6-B028-4122099D692F}.Release-Signed|Any CPU.Build.0 = Debug|Any CPU
+		{FBE18DF3-EEC3-4812-9FB4-B9EA6EAEC029}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBE18DF3-EEC3-4812-9FB4-B9EA6EAEC029}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBE18DF3-EEC3-4812-9FB4-B9EA6EAEC029}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBE18DF3-EEC3-4812-9FB4-B9EA6EAEC029}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBE18DF3-EEC3-4812-9FB4-B9EA6EAEC029}.Release-Signed|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBE18DF3-EEC3-4812-9FB4-B9EA6EAEC029}.Release-Signed|Any CPU.Build.0 = Debug|Any CPU
+		{2AA6CF31-96A1-4BB5-AD2E-7840167FE4DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AA6CF31-96A1-4BB5-AD2E-7840167FE4DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AA6CF31-96A1-4BB5-AD2E-7840167FE4DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AA6CF31-96A1-4BB5-AD2E-7840167FE4DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AA6CF31-96A1-4BB5-AD2E-7840167FE4DA}.Release-Signed|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AA6CF31-96A1-4BB5-AD2E-7840167FE4DA}.Release-Signed|Any CPU.Build.0 = Debug|Any CPU
+		{B626F8B8-51A5-4FB6-BE5A-E94B27B1A050}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B626F8B8-51A5-4FB6-BE5A-E94B27B1A050}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B626F8B8-51A5-4FB6-BE5A-E94B27B1A050}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B626F8B8-51A5-4FB6-BE5A-E94B27B1A050}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B626F8B8-51A5-4FB6-BE5A-E94B27B1A050}.Release-Signed|Any CPU.ActiveCfg = Debug|Any CPU
+		{B626F8B8-51A5-4FB6-BE5A-E94B27B1A050}.Release-Signed|Any CPU.Build.0 = Debug|Any CPU
+		{1FBB8988-3F40-4FCE-BEA8-2C705888804A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FBB8988-3F40-4FCE-BEA8-2C705888804A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1FBB8988-3F40-4FCE-BEA8-2C705888804A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1FBB8988-3F40-4FCE-BEA8-2C705888804A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1FBB8988-3F40-4FCE-BEA8-2C705888804A}.Release-Signed|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FBB8988-3F40-4FCE-BEA8-2C705888804A}.Release-Signed|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

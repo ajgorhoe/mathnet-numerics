@@ -32,7 +32,7 @@ using System.Linq;
 using MathNet.Numerics.Distributions;
 using NUnit.Framework;
 
-namespace MathNet.Numerics.UnitTests.DistributionTests.Discrete
+namespace MathNet.Numerics.Tests.DistributionTests.Discrete
 {
     /// <summary>
     /// Conway-Maxwell-Poisson tests.
@@ -49,7 +49,7 @@ namespace MathNet.Numerics.UnitTests.DistributionTests.Discrete
         [TestCase(1.0, 2.5)]
         [TestCase(2.5, 3.0)]
         [TestCase(10.0, 3.5)]
-        [TestCase(Double.PositiveInfinity, Double.PositiveInfinity)]
+        [TestCase(double.PositiveInfinity, double.PositiveInfinity)]
         public void CanCreateConwayMaxwellPoisson(double lambda, double nu)
         {
             var d = new ConwayMaxwellPoisson(lambda, nu);

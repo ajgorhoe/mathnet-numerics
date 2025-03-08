@@ -33,7 +33,7 @@ using MathNet.Numerics.Financial;
 using MathNet.Numerics.Statistics;
 using NUnit.Framework;
 
-namespace MathNet.Numerics.UnitTests.FinancialTests
+namespace MathNet.Numerics.Tests.FinancialTests
 {
     [TestFixture, Category("Financial")]
     public class LossMeanTests
@@ -89,9 +89,8 @@ namespace MathNet.Numerics.UnitTests.FinancialTests
             //arrange
             List<double> inputData = null;
             //act
-// ReSharper disable ExpressionIsAlwaysNull
+// ReSharper disable once ExpressionIsAlwaysNull
             Assert.Throws<ArgumentNullException>(() => AbsoluteReturnMeasures.LossMean(inputData));
-// ReSharper restore ExpressionIsAlwaysNull
         }
 
         [Test]

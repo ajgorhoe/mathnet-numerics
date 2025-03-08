@@ -32,7 +32,7 @@ using MathNet.Numerics.Distributions;
 using MathNet.Numerics.LinearAlgebra;
 using NUnit.Framework;
 
-namespace MathNet.Numerics.UnitTests.DistributionTests.Multivariate
+namespace MathNet.Numerics.Tests.DistributionTests.Multivariate
 {
     /// <summary>
     /// <c>Wishart</c> distribution tests.
@@ -96,7 +96,7 @@ namespace MathNet.Numerics.UnitTests.DistributionTests.Multivariate
         /// <param name="nu">DegreesOfFreedom parameter.</param>
         /// <param name="order">Scale matrix order.</param>
         [TestCase(-1.0, 2)]
-        [TestCase(Double.NaN, 5)]
+        [TestCase(double.NaN, 5)]
         public void FailNuCreateWishart(double nu, int order)
         {
             var matrix = Matrix<double>.Build.RandomPositiveDefinite(order, 1);

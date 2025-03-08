@@ -73,6 +73,11 @@ namespace MathNet.Numerics.LinearAlgebra.Double
                 new ResidualStopCriterion<double>(1e-12)
             };
         }
+
+        internal override double Add(double x, double y)
+        {
+            return x + y;
+        }
     }
 
     internal class VectorBuilder : VectorBuilder<double>
@@ -135,6 +140,11 @@ namespace MathNet.Numerics.LinearAlgebra.Single
                 new IterationCountStopCriterion<float>(maxIterations),
                 new ResidualStopCriterion<float>(1e-6)
             };
+        }
+
+        internal override float Add(float x, float y)
+        {
+            return x + y;
         }
     }
 
@@ -201,6 +211,11 @@ namespace MathNet.Numerics.LinearAlgebra.Complex
                 new ResidualStopCriterion<Complex>(1e-12)
             };
         }
+
+        internal override Complex Add(Complex x, Complex y)
+        {
+            return x + y;
+        }
     }
 
     internal class VectorBuilder : VectorBuilder<Complex>
@@ -264,6 +279,11 @@ namespace MathNet.Numerics.LinearAlgebra.Complex32
                 new ResidualStopCriterion<Numerics.Complex32>(1e-6)
             };
         }
+
+        internal override Numerics.Complex32 Add(Numerics.Complex32 x, Numerics.Complex32 y)
+        {
+            return x + y;
+        }
     }
 
     internal class VectorBuilder : VectorBuilder<Numerics.Complex32>
@@ -307,6 +327,8 @@ namespace MathNet.Numerics.LinearAlgebra
         /// Gets the value of <c>1.0</c> for type T.
         /// </summary>
         public abstract T One { get; }
+
+        internal abstract T Add(T x, T y);
 
         /// <summary>
         /// Create a new matrix straight from an initialized matrix storage instance.
@@ -436,7 +458,6 @@ namespace MathNet.Numerics.LinearAlgebra
         /// <summary>
         /// Create a new dense matrix with the given number of rows and columns.
         /// All cells of the matrix will be initialized to zero.
-        /// Zero-length matrices are not supported.
         /// </summary>
         public Matrix<T> Dense(int rows, int columns)
         {
@@ -477,7 +498,7 @@ namespace MathNet.Numerics.LinearAlgebra
         public Matrix<T> DenseDiagonal(int rows, int columns, T value)
         {
             if (Zero.Equals(value)) return Dense(rows, columns);
-            return Dense(DenseColumnMajorMatrixStorage<T>.OfDiagonalInit(rows, columns, i => value));
+            return Dense(DenseColumnMajorMatrixStorage<T>.OfDiagonalInit(rows, columns, _ => value));
         }
 
         /// <summary>
@@ -486,7 +507,7 @@ namespace MathNet.Numerics.LinearAlgebra
         public Matrix<T> DenseDiagonal(int order, T value)
         {
             if (Zero.Equals(value)) return Dense(order, order);
-            return Dense(DenseColumnMajorMatrixStorage<T>.OfDiagonalInit(order, order, i => value));
+            return Dense(DenseColumnMajorMatrixStorage<T>.OfDiagonalInit(order, order, _ => value));
         }
 
         /// <summary>
@@ -502,7 +523,7 @@ namespace MathNet.Numerics.LinearAlgebra
         /// </summary>
         public Matrix<T> DenseIdentity(int rows, int columns)
         {
-            return Dense(DenseColumnMajorMatrixStorage<T>.OfDiagonalInit(rows, columns, i => One));
+            return Dense(DenseColumnMajorMatrixStorage<T>.OfDiagonalInit(rows, columns, _ => One));
         }
 
         /// <summary>
@@ -510,7 +531,7 @@ namespace MathNet.Numerics.LinearAlgebra
         /// </summary>
         public Matrix<T> DenseIdentity(int order)
         {
-            return Dense(DenseColumnMajorMatrixStorage<T>.OfDiagonalInit(order, order, i => One));
+            return Dense(DenseColumnMajorMatrixStorage<T>.OfDiagonalInit(order, order, _ => One));
         }
 
         /// <summary>
@@ -540,6 +561,17 @@ namespace MathNet.Numerics.LinearAlgebra
         /// A new memory block will be allocated for storing the matrix.
         /// </summary>
         public Matrix<T> DenseOfIndexed(int rows, int columns, IEnumerable<Tuple<int, int, T>> enumerable)
+        {
+            return Dense(DenseColumnMajorMatrixStorage<T>.OfIndexedEnumerable(rows, columns, enumerable));
+        }
+
+        /// <summary>
+        /// Create a new dense matrix as a copy of the given indexed enumerable.
+        /// Keys must be provided at most once, zero is assumed if a key is omitted.
+        /// This new matrix will be independent from the enumerable.
+        /// A new memory block will be allocated for storing the matrix.
+        /// </summary>
+        public Matrix<T> DenseOfIndexed(int rows, int columns, IEnumerable<(int, int, T)> enumerable)
         {
             return Dense(DenseColumnMajorMatrixStorage<T>.OfIndexedEnumerable(rows, columns, enumerable));
         }
@@ -787,6 +819,7 @@ namespace MathNet.Numerics.LinearAlgebra
         /// Intended for advanced scenarios where you're working directly with
         /// storage for performance or interop reasons.
         /// </summary>
+        /// <param name="storage">The SparseCompressedRowMatrixStorage</param>
         public abstract Matrix<T> Sparse(SparseCompressedRowMatrixStorage<T> storage);
 
         /// <summary>
@@ -822,7 +855,7 @@ namespace MathNet.Numerics.LinearAlgebra
         public Matrix<T> SparseDiagonal(int rows, int columns, T value)
         {
             if (Zero.Equals(value)) return Sparse(rows, columns);
-            return Sparse(SparseCompressedRowMatrixStorage<T>.OfDiagonalInit(rows, columns, i => value));
+            return Sparse(SparseCompressedRowMatrixStorage<T>.OfDiagonalInit(rows, columns, _ => value));
         }
 
         /// <summary>
@@ -831,7 +864,7 @@ namespace MathNet.Numerics.LinearAlgebra
         public Matrix<T> SparseDiagonal(int order, T value)
         {
             if (Zero.Equals(value)) return Sparse(order, order);
-            return Sparse(SparseCompressedRowMatrixStorage<T>.OfDiagonalInit(order, order, i => value));
+            return Sparse(SparseCompressedRowMatrixStorage<T>.OfDiagonalInit(order, order, _ => value));
         }
 
         /// <summary>
@@ -847,7 +880,7 @@ namespace MathNet.Numerics.LinearAlgebra
         /// </summary>
         public Matrix<T> SparseIdentity(int rows, int columns)
         {
-            return Sparse(SparseCompressedRowMatrixStorage<T>.OfDiagonalInit(rows, columns, i => One));
+            return Sparse(SparseCompressedRowMatrixStorage<T>.OfDiagonalInit(rows, columns, _ => One));
         }
 
         /// <summary>
@@ -855,7 +888,7 @@ namespace MathNet.Numerics.LinearAlgebra
         /// </summary>
         public Matrix<T> SparseIdentity(int order)
         {
-            return Sparse(SparseCompressedRowMatrixStorage<T>.OfDiagonalInit(order, order, i => One));
+            return Sparse(SparseCompressedRowMatrixStorage<T>.OfDiagonalInit(order, order, _ => One));
         }
 
         /// <summary>
@@ -885,6 +918,17 @@ namespace MathNet.Numerics.LinearAlgebra
         /// A new memory block will be allocated for storing the matrix.
         /// </summary>
         public Matrix<T> SparseOfIndexed(int rows, int columns, IEnumerable<Tuple<int, int, T>> enumerable)
+        {
+            return Sparse(SparseCompressedRowMatrixStorage<T>.OfIndexedEnumerable(rows, columns, enumerable));
+        }
+
+        /// <summary>
+        /// Create a new sparse matrix as a copy of the given indexed enumerable.
+        /// Keys must be provided at most once, zero is assumed if a key is omitted.
+        /// This new matrix will be independent from the enumerable.
+        /// A new memory block will be allocated for storing the matrix.
+        /// </summary>
+        public Matrix<T> SparseOfIndexed(int rows, int columns, IEnumerable<(int, int, T)> enumerable)
         {
             return Sparse(SparseCompressedRowMatrixStorage<T>.OfIndexedEnumerable(rows, columns, enumerable));
         }
@@ -1136,104 +1180,57 @@ namespace MathNet.Numerics.LinearAlgebra
         //            [ 0 0 f j l n ]
         //            [ 0 d g k m 0 ]
         //
-        // Rows = 4, Columns = 6, NonZeroCount = 14
+        // rows = 4, columns = 6, valueCount = 14
         //
-        // (1) COO, Coordinate Format:
+        // (1) COO, Coordinate, ijv, or triplet format:
         //     cooRowIndices     = { 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3 }
         //     cooColumnIndices  = { 1, 3, 0, 1, 2, 3, 2, 3, 4, 5, 1, 2, 3, 4 }
         //     cooValues         = { b, h, a, c, e, i, f, j, l, n, d, g, k, m }
         //
-        // (2) CSR, Compressed Sparse Row representation:
+        // (2) CSR, Compressed Sparse Row or Compressed Row Storage(CRS) or Yale format:
         //     csrRowPointers    = { 0, 2, 6, 10, 14 }
         //     csrColumnIndices  = { 1, 3, 0, 1, 2, 3, 2, 3, 4, 5, 1, 2, 3, 4 }
         //     csrValues         = { b, h, a, c, e, i, f, j, l, n, d, g, k, m }
         //
-        // (3) CSC, Compressed Sparse Column representation:
-        //     csrColumnPointers = { 0, 1, 4, 7, 11, 13, 14 }
-        //     csrRowIndices     = { 1, 0, 1, 3, 1, 2, 3, 0, 1, 2, 3, 2, 3, 2 }
-        //     csrValues         = { a, b, c, d, e, f, g, h, i, j, k, l, m, n }
-
+        // (3) CSC, Compressed Sparse Column or Compressed Column Storage(CCS) format:
+        //     cscColumnPointers = { 0, 1, 4, 7, 11, 13, 14 }
+        //     cscRowIndices     = { 1, 0, 1, 3, 1, 2, 3, 0, 1, 2, 3, 2, 3, 2 }
+        //     cscValues         = { a, b, c, d, e, f, g, h, i, j, k, l, m, n }
 
         /// <summary>
         /// Create a new sparse matrix from a coordinate format.
         /// This new matrix will be independent from the given arrays.
         /// A new memory block will be allocated for storing the matrix.
         /// </summary>
-        public Matrix<T> SparseFromCoordinateFormat(int rows, int columns, int nonZeroCount, int[] cooRowIndices, int[] cooColumnIndices, T[] cooValues)
+        /// <param name="rows">The number of rows.</param>
+        /// <param name="columns">The number of columns.</param>
+        /// <param name="valueCount">The number of stored values including explicit zeros.</param>
+        /// <param name="rowIndices">The row index array of the coordinate format.</param>
+        /// <param name="columnIndices">The column index array of the coordinate format.</param>
+        /// <param name="values">The data array of the coordinate format.</param>
+        /// <returns>The sparse matrix from the coordinate format.</returns>
+        /// <remarks>Duplicate entries will be summed together and explicit zeros will be not intentionally removed.</remarks>
+        public Matrix<T> SparseFromCoordinateFormat(int rows, int columns, int valueCount, int[] rowIndices, int[] columnIndices, T[] values)
         {
-            if (cooValues == null)
-                throw new NullReferenceException(nameof(cooValues));
-            if (cooRowIndices == null)
-                throw new NullReferenceException(nameof(cooRowIndices));
-            if (cooColumnIndices == null)
-                throw new NullReferenceException(nameof(cooColumnIndices));
-
-            if (cooRowIndices.Length < nonZeroCount || cooColumnIndices.Length < nonZeroCount || cooValues.Length < nonZeroCount)
-            {
-                throw new Exception($"The given array has the wrong length. Should be {nonZeroCount}.");
-            }
-
-            // convert from COO to CSR
-
-            var csrValues = new T[nonZeroCount];
-            var csrColumnIndices = new int[nonZeroCount];
-            var csrRowPointers = new int[rows + 1];
-
-            for (int i = 0; i < nonZeroCount; i++)
-            {
-                csrRowPointers[cooRowIndices[i] + 1]++;
-            }
-            for (int i = 1; i < rows + 1; i++)
-            {
-                csrRowPointers[i] += csrRowPointers[i - 1];
-            }
-            var curr = new int[rows];
-            for (int i = 0; i < nonZeroCount; i++)
-            {
-                int row = cooRowIndices[i];
-                var loc = csrRowPointers[row] + curr[row];
-                curr[row]++;
-
-                csrColumnIndices[loc] = cooColumnIndices[i];
-                csrValues[loc] = cooValues[i];
-            }
-
-            var storage = new SparseCompressedRowMatrixStorage<T>(rows, columns, csrRowPointers, csrColumnIndices, csrValues);
-            return Sparse(storage);
+            return Sparse(SparseCompressedRowMatrixStorage<T>.OfCoordinateFormat(rows, columns, valueCount, rowIndices, columnIndices, values));
         }
-
 
         /// <summary>
         /// Create a new sparse matrix from a compressed sparse row format.
         /// This new matrix will be independent from the given arrays.
         /// A new memory block will be allocated for storing the matrix.
         /// </summary>
-        public Matrix<T> SparseFromCompressedSparseRowFormat(int rows, int columns, int nonZeroCount, int[] csrRowPointers, int[] csrColumnIndices, T[] csrValues)
+        /// <param name="rows">The number of rows.</param>
+        /// <param name="columns">The number of columns.</param>
+        /// <param name="valueCount">The number of stored values including explicit zeros.</param>
+        /// <param name="rowPointers">The row pointer array of the compressed sparse row format.</param>
+        /// <param name="columnIndices">The column index array of the compressed sparse row format.</param>
+        /// <param name="values">The data array of the compressed sparse row format.</param>
+        /// <returns>The sparse matrix from the compressed sparse row format.</returns>
+        /// <remarks>Duplicate entries will be summed together and explicit zeros will be not intentionally removed.</remarks>
+        public Matrix<T> SparseFromCompressedSparseRowFormat(int rows, int columns, int valueCount, int[] rowPointers, int[] columnIndices, T[] values)
         {
-            if (csrValues == null)
-                throw new NullReferenceException(nameof(csrValues));
-            if (csrColumnIndices == null)
-                throw new NullReferenceException(nameof(csrColumnIndices));
-            if (csrRowPointers == null)
-                throw new NullReferenceException(nameof(csrRowPointers));
-            if (csrRowPointers.Length < rows)
-            {
-                throw new Exception($"The given array has the wrong length. Should be {rows + 1}.");
-            }
-            if (nonZeroCount != csrRowPointers[rows])
-            {
-                throw new Exception($"{nameof(nonZeroCount)} should be same to {csrRowPointers[rows]}");
-            }
-
-            var values = new T[nonZeroCount];
-            Array.Copy(csrValues, values, nonZeroCount);
-            var columnIndices = new int[nonZeroCount];
-            Array.Copy(csrColumnIndices, columnIndices, nonZeroCount);
-            var rowPointers = new int[rows + 1];
-            Array.Copy(csrRowPointers, rowPointers, rows + 1);
-
-            var storage = new SparseCompressedRowMatrixStorage<T>(rows, columns, rowPointers, columnIndices, values);
-            return Sparse(storage);
+            return Sparse(SparseCompressedRowMatrixStorage<T>.OfCompressedSparseRowFormat(rows, columns, valueCount, rowPointers, columnIndices, values));
         }
 
         /// <summary>
@@ -1241,54 +1238,17 @@ namespace MathNet.Numerics.LinearAlgebra
         /// This new matrix will be independent from the given arrays.
         /// A new memory block will be allocated for storing the matrix.
         /// </summary>
-        public Matrix<T> SparseFromCompressedSparseColumnFormat(int rows, int columns, int nonZeroCount, int[] cscRowIndices, int[] cscColumnPointers, T[] cscValues)
+        /// <param name="rows">The number of rows.</param>
+        /// <param name="columns">The number of columns.</param>
+        /// <param name="valueCount">The number of stored values including explicit zeros.</param>
+        /// <param name="rowIndices">The row index array of the compressed sparse column format.</param>
+        /// <param name="columnPointers">The column pointer array of the compressed sparse column format.</param>
+        /// <param name="values">The data array of the compressed sparse column format.</param>
+        /// <returns>The sparse matrix from the compressed sparse column format.</returns>
+        /// <remarks>Duplicate entries will be summed together and explicit zeros will be not intentionally removed.</remarks>
+        public Matrix<T> SparseFromCompressedSparseColumnFormat(int rows, int columns, int valueCount, int[] rowIndices, int[] columnPointers, T[] values)
         {
-            if (cscValues == null)
-                throw new NullReferenceException(nameof(cscValues));
-            if (cscRowIndices == null)
-                throw new NullReferenceException(nameof(cscRowIndices));
-            if (cscColumnPointers == null)
-                throw new NullReferenceException(nameof(cscColumnPointers));
-            if (cscColumnPointers.Length < columns)
-            {
-                throw new Exception($"The given array has the wrong length. Should be {columns + 1}.");
-            }
-            if (nonZeroCount != cscColumnPointers[columns])
-            {
-                throw new Exception($"{nameof(nonZeroCount)} should be same to {cscColumnPointers[columns]}");
-            }
-
-            // convert from CSC to CSR
-
-            var csrValues = new T[nonZeroCount];
-            var csrRowPointers = new int[rows + 1];
-            var csrColumnIndices = new int[nonZeroCount];
-
-            for (int i = 0; i < columns; i++)
-            {
-                for (int j = cscColumnPointers[i]; j < cscColumnPointers[i + 1]; j++)
-                {
-                    csrRowPointers[cscRowIndices[j] + 1]++;
-                }
-            }
-            for (int i = 1; i < rows + 1; i++)
-            {
-                csrRowPointers[i] += csrRowPointers[i - 1];
-            }
-            var curr = new int[rows];
-            for (int i = 0; i < columns; i++)
-            {
-                for (int j = cscColumnPointers[i]; j < cscColumnPointers[i + 1]; j++)
-                {
-                    var loc = csrRowPointers[cscRowIndices[j]] + curr[cscRowIndices[j]];
-                    curr[cscRowIndices[j]]++;
-                    csrColumnIndices[loc] = i;
-                    csrValues[loc] = cscValues[j];
-                }
-            }
-
-            var storage = new SparseCompressedRowMatrixStorage<T>(rows, columns, csrRowPointers, csrColumnIndices, csrValues);
-            return Sparse(storage);
+            return Sparse(SparseCompressedRowMatrixStorage<T>.OfCompressedSparseColumnFormat(rows, columns, valueCount, rowIndices, columnPointers, values));
         }
 
         /// <summary>
@@ -1302,7 +1262,6 @@ namespace MathNet.Numerics.LinearAlgebra
         /// <summary>
         /// Create a new diagonal matrix with the given number of rows and columns.
         /// All cells of the matrix will be initialized to zero.
-        /// Zero-length matrices are not supported.
         /// </summary>
         public Matrix<T> Diagonal(int rows, int columns)
         {
@@ -1601,6 +1560,17 @@ namespace MathNet.Numerics.LinearAlgebra
         }
 
         /// <summary>
+        /// Create a new dense vector as a copy of the given indexed enumerable.
+        /// Keys must be provided at most once, zero is assumed if a key is omitted.
+        /// This new vector will be independent from the enumerable.
+        /// A new memory block will be allocated for storing the vector.
+        /// </summary>
+        public Vector<T> DenseOfIndexed(int length, IEnumerable<(int, T)> enumerable)
+        {
+            return Dense(DenseVectorStorage<T>.OfIndexedEnumerable(length, enumerable));
+        }
+
+        /// <summary>
         /// Create a new sparse vector straight from an initialized vector storage instance.
         /// The storage is used directly without copying.
         /// Intended for advanced scenarios where you're working directly with
@@ -1674,6 +1644,17 @@ namespace MathNet.Numerics.LinearAlgebra
         {
             return Sparse(SparseVectorStorage<T>.OfIndexedEnumerable(length, enumerable));
         }
+
+        /// <summary>
+        /// Create a new sparse vector as a copy of the given indexed enumerable.
+        /// Keys must be provided at most once, zero is assumed if a key is omitted.
+        /// This new vector will be independent from the enumerable.
+        /// A new memory block will be allocated for storing the vector.
+        /// </summary>
+        public Vector<T> SparseOfIndexed(int length, IEnumerable<(int, T)> enumerable)
+        {
+            return Sparse(SparseVectorStorage<T>.OfIndexedEnumerable(length, enumerable));
+        }
     }
 
     internal static class BuilderInstance<T> where T : struct, IEquatable<T>, IFormattable
@@ -1685,8 +1666,8 @@ namespace MathNet.Numerics.LinearAlgebra
             if (typeof (T) == typeof (System.Numerics.Complex))
             {
                 return new Tuple<MatrixBuilder<T>, VectorBuilder<T>>(
-                    (MatrixBuilder<T>)(object)new LinearAlgebra.Complex.MatrixBuilder(),
-                    (VectorBuilder<T>)(object)new LinearAlgebra.Complex.VectorBuilder());
+                    (MatrixBuilder<T>)(object)new Complex.MatrixBuilder(),
+                    (VectorBuilder<T>)(object)new Complex.VectorBuilder());
             }
 
             if (typeof (T) == typeof (Numerics.Complex32))

@@ -34,9 +34,8 @@
 
 using System;
 
-// ReSharper disable CheckNamespace
+// ReSharper disable once CheckNamespace
 namespace MathNet.Numerics
-// ReSharper restore CheckNamespace
 {
 
     public static partial class SpecialFunctions
@@ -126,9 +125,7 @@ namespace MathNet.Numerics
             if (symmetryTransformation)
             {
                 x = 1.0 - x;
-                var swap = a;
-                a = b;
-                b = swap;
+                (a, b) = (b, a);
             }
 
             var qab = a + b;

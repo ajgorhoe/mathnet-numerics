@@ -1,3 +1,25 @@
+### 3.0.0 - 2022-02-19
+* New binary names and package structure with runtime folders
+* With Intel oneAPI 2022
+* Note that MathNet.Numerics.Providers.MKL.dll is required for this to work with Numerics v5
+
+### 3.0.0-beta3 - 2022-02-19
+* Fix typo in the binary file name
+
+### 3.0.0-beta2 - 2021-12-29
+* New binary names and package structure with runtime folders
+
+### 2.6.0-beta3 - 2021-12-19
+* Experimental build with runtime folders for sdk projects
+
+### 2.6.0-beta2 - 2021-12-09
+* r15 with Intel oneAPI 2021.4, preview for Numerics v5 with MathNet.Numerics.Pro
+* Note that MathNet.Numerics.Providers.MKL.dll is required for this to work with Numerics v5
+
+### 2.5.0 - 2021-01-01
+* r14 with Intel MKL 2020 Update 4
+* MKL Direct Sparse Solver provider *~Jong Hyun Kim*
+
 ### 2.4.0 - 2020-05-22
 * r13 with Intel MKL 2020.0 Update 1
 
